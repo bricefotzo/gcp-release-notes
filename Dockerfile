@@ -51,4 +51,4 @@ COPY . .
 EXPOSE 8000
 
 # Run the application.
-CMD uv run streamlit run main.py
+CMD uv run streamlit run app.py ${PORT:+--server.port=$PORT} --server.address=0.0.0.0
