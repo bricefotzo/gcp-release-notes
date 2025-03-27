@@ -1,0 +1,19 @@
+[project]
+name = "uv-project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "db-dtypes>=1.4.2",
+    "google-cloud-aiplatform>=1.85.0",
+    "google-cloud-bigquery>=3.31.0",
+    "google-genai>=1.7.0",
+    "pandas>=2.2.3",
+    "plotly>=6.0.1",
+    "python-dotenv>=1.1.0",
+    "requests>=2.32.3",
+    "streamlit>=1.44.0",
+    "streamlit-antd-components>=0.3.2",
+    "vertexai>=1.43.0",
+]
