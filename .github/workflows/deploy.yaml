@@ -27,3 +27,4 @@ jobs:
           service-routes: "/:8000"
           git-builder: docker
           skip-cache: true
+          service-env: "GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}"
