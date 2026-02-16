@@ -33,8 +33,10 @@ google-auth==2.48.0
     #   google-api-core
     #   google-cloud-bigquery
     #   google-cloud-core
-google-cloud-bigquery==3.40.1
+# google-cloud-bigquery==3.40.1
     # via gcp-release-notes (pyproject.toml)
+google-cloud-bigquery[pandas]==3.40.1
+db-dtypes
 google-cloud-core==2.5.0
     # via google-cloud-bigquery
 google-crc32c==1.8.0
