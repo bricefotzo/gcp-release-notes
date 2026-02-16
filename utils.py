@@ -14,7 +14,7 @@ def format_description(description):
     
     # If no tracks found, just display the description
     if not tracks:
-        st.markdown(description)
+        st.markdown(description, unsafe_allow_html=True)
         return ""
         
     # Get all unique track names

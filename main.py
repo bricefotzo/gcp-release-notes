@@ -319,7 +319,7 @@ with tab1:
                 st.markdown(f"### {row['product_name']}")
                 st.markdown(f"**Type:** {row['release_note_type']} | **Published:** {row['published_at'].strftime('%Y-%m-%d')}")
                 st.markdown(f"**Description:** ")
-                st.markdown(f"{format_description(row['description'])}")
+                st.markdown(f"{format_description(row['description'])}", unsafe_allow_html=True)
                 st.divider()
     else:
         st.info("No results found matching your criteria.")
