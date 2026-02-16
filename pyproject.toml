@@ -5,6 +5,7 @@ description = "Streamlit app to search and filter Google Cloud release notes fro
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "db-dtypes>=1.5.0",
     "google-cloud-bigquery>=3.31.0",
     "pandas>=2.2.3",
     "pillow>=11.0.0",

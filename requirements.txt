@@ -20,6 +20,8 @@ click==8.3.1
     # via streamlit
 cryptography==46.0.5
     # via google-auth
+db-dtypes==1.5.0
+    # via gcp-release-notes (pyproject.toml)
 gitdb==4.0.12
     # via gitpython
 gitpython==3.1.46
@@ -33,10 +35,8 @@ google-auth==2.48.0
     #   google-api-core
     #   google-cloud-bigquery
     #   google-cloud-core
-# google-cloud-bigquery==3.40.1
+google-cloud-bigquery==3.40.1
     # via gcp-release-notes (pyproject.toml)
-google-cloud-bigquery[pandas]==3.40.1
-db-dtypes
 google-cloud-core==2.5.0
     # via google-cloud-bigquery
 google-crc32c==1.8.0
@@ -71,18 +71,21 @@ narwhals==2.16.0
     #   plotly
 numpy==2.4.2
     # via
+    #   db-dtypes
     #   pandas
     #   pydeck
     #   streamlit
 packaging==26.0
     # via
     #   altair
+    #   db-dtypes
     #   google-cloud-bigquery
     #   plotly
     #   streamlit
 pandas==2.3.3
     # via
     #   gcp-release-notes (pyproject.toml)
+    #   db-dtypes
     #   streamlit
 pillow==12.1.1
     # via
@@ -100,7 +103,9 @@ protobuf==6.33.5
     #   proto-plus
     #   streamlit
 pyarrow==23.0.0
-    # via streamlit
+    # via
+    #   db-dtypes
+    #   streamlit
 pyasn1==0.6.2
     # via
     #   pyasn1-modules
