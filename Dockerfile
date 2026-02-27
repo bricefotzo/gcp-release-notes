@@ -33,7 +33,7 @@ RUN adduser \
     && chown -R appuser:appuser /home/appuser
 
 # Installer nginx
-RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y nginx curl && rm -rf /var/lib/apt/lists/*
 # Supprimer les configs par défaut de nginx
 RUN rm -f /etc/nginx/conf.d/default.conf /etc/nginx/sites-enabled/default
 # Download dependencies as a separate step to take advantage of Docker's caching.
