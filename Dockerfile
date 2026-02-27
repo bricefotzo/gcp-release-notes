@@ -32,6 +32,10 @@ RUN adduser \
     && mkdir -p /home/appuser/.cache/uv \
     && chown -R appuser:appuser /home/appuser
 
+# Installer nginx
+RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
+# Supprimer les configs par défaut de nginx
+RUN rm -f /etc/nginx/conf.d/default.conf /etc/nginx/sites-enabled/default
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
 # Leverage a bind mount to requirements.txt to avoid having to copy them into
@@ -45,10 +49,13 @@ RUN --mount=type=cache,target=/home/appuser/.cache/uv \
 USER appuser
 
 # Copy the source code into the container.
-COPY . .
 
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY start.sh .
+COPY . .
 # Expose the port that the application listens on.
-EXPOSE 8000
+EXPOSE 8080
 
 # Run the application.
-CMD uv run streamlit run main.py ${PORT:+--server.port=$PORT} --server.address=0.0.0.0
+CMD ["./start.sh"]
+
