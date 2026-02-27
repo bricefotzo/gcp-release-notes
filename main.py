@@ -8,6 +8,7 @@ import plotly.express as px
 
 import streamlit as st
 import streamlit_antd_components as sac
+import streamlit.components.v1 as components
 from dotenv import load_dotenv
 from PIL import Image
 
@@ -31,6 +32,25 @@ st.set_page_config(
     page_icon=page_icon,
     layout="wide",
 )
+components.html("""
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4DDTVR6RLY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'G-4DDTVR6RLY');
+    </script>
+    <script type="text/javascript">
+var _iub = _iub || [];
+_iub.csConfiguration = {"siteId":4443283,"cookiePolicyId":61007907,"lang":"en","storage":{"useSiteId":true}};
+</script>
+<script type="text/javascript" src="https://cs.iubenda.com/autoblocking/4443283.js"></script>
+<script type="text/javascript" src="//cdn.iubenda.com/cs/gpp/stub.js"></script>
+<script type="text/javascript" src="//cdn.iubenda.com/cs/iubenda_cs.js" charset="UTF-8" async></script>
+""", height=0)
+
 st.markdown(
     """
     <style>
