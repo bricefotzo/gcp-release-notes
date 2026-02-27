@@ -65,7 +65,7 @@ with st.expander("About this App"):
 - The release date
 """
     )
-    st.markdown("More evolutions will come later.\nFor now it's mainly GCP orienter but the idea us to add more providers.")
+    st.markdown("More evolutions will come later.\nFor now it's mainly GCP oriented but we'll add Cloud providers.")
 
 # Config and connection
 _table = get_table_name()
