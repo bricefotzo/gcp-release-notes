@@ -4,7 +4,7 @@ set -e
 mkdir -p /tmp/nginx/client_body /tmp/nginx/proxy /tmp/nginx/fastcgi
 
 # Démarrer Streamlit en arrière-plan
-uv run streamlit run app.py --server.port=8501 --server.address=127.0.0.1 &
+uv run streamlit run main.py --server.port=8501 --server.address=127.0.0.1 &
 
 # Attendre que Streamlit soit prêt
 echo "Waiting for Streamlit to start..."
