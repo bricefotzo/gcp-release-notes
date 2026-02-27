@@ -27,7 +27,7 @@ load_dotenv()
 PAGE_ICON_PATH = Path(__file__).parent / "assets/google.png"
 page_icon = Image.open(PAGE_ICON_PATH) if PAGE_ICON_PATH.exists() else None
 st.set_page_config(
-    page_title="GCP Release Notes Navigator",
+    page_title="Release Notes Navigator",
     page_icon=page_icon,
     layout="wide",
 )
@@ -45,7 +45,7 @@ st.markdown(
 sac.buttons(
     [
         sac.ButtonsItem(
-            label="GCP Release Notes Navigator",
+            label="Release Notes Navigator",
             icon=sac.BsIcon(name="google", size=30),
         )
     ],
@@ -56,16 +56,16 @@ sac.buttons(
 )
 with st.expander("About this App"):
     st.markdown(
-        "The purpose of this app is to turn Google Cloud release notes into relevant insights."
+        "The purpose of this app is to turn Cloud release notes into relevant insights."
     )
     st.markdown(
         """Visitors can search by keyword and filter notes by:
-- Google Service or Product
+- Service or Product
 - The type of change
 - The release date
 """
     )
-    st.markdown("More evolutions will come later.")
+    st.markdown("More evolutions will come later.\nFor now it's mainly GCP orienter but the idea us to add more providers.")
 
 # Config and connection
 _table = get_table_name()
