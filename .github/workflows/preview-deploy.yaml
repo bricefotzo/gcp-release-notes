@@ -1,0 +1,211 @@
+name: Preview Environment
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGION: ${{ vars.GCP_REGION }}
+  AR_REPOSITORY: ${{ vars.AR_REPOSITORY }}
+  IMAGE_NAME: gcp-release-notes
+
+jobs:
+  # ------------------------------------------------------------------
+  # Deploy a preview Cloud Run service for the PR
+  # ------------------------------------------------------------------
+  deploy-preview:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: preview-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Set preview service name
+        id: meta
+        run: |
+          SERVICE_NAME="preview-pr-${{ github.event.pull_request.number }}"
+          IMAGE_TAG="pr-${{ github.event.pull_request.number }}-${{ github.sha }}"
+          echo "service_name=${SERVICE_NAME}" >> "$GITHUB_OUTPUT"
+          echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push image
+        run: |
+          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPOSITORY }}/${{ env.IMAGE_NAME }}"
+          docker build -t "${IMAGE}:${{ steps.meta.outputs.image_tag }}" .
+          docker push "${IMAGE}:${{ steps.meta.outputs.image_tag }}"
+
+      - name: Deploy preview to Cloud Run
+        id: deploy
+        run: |
+          gcloud run deploy ${{ steps.meta.outputs.service_name }} \
+            --image=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.image_tag }} \
+            --region=${{ env.REGION }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --tag=pr-${{ github.event.pull_request.number }} \
+            --update-env-vars="MONGODB_URI=${{ secrets.MONGODB_URI }},GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}" \
+            --format='value(status.url)'
+
+          PREVIEW_URL=$(gcloud run services describe ${{ steps.meta.outputs.service_name }} \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} \
+            --format='value(status.url)')
+          echo "preview_url=${PREVIEW_URL}" >> "$GITHUB_OUTPUT"
+
+      - name: Comment preview URL on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const previewUrl = '${{ steps.deploy.outputs.preview_url }}';
+            const sha = '${{ github.sha }}'.substring(0, 7);
+            const marker = '<!-- preview-bot -->';
+
+            const body = [
+              marker,
+              `### :rocket: Preview Environment`,
+              '',
+              `| | |`,
+              `|---|---|`,
+              `| **URL** | ${previewUrl} |`,
+              `| **Service** | \`${{ steps.meta.outputs.service_name }}\` |`,
+              `| **Commit** | \`${sha}\` |`,
+              '',
+              '_This environment will be automatically cleaned up when the PR is closed._'
+            ].join('\n');
+
+            // Update existing comment or create a new one
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body,
+              });
+            }
+
+  # ------------------------------------------------------------------
+  # Cleanup: delete the preview service when the PR is closed/merged
+  # ------------------------------------------------------------------
+  cleanup-preview:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+
+    steps:
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Set preview service name
+        id: meta
+        run: |
+          echo "service_name=preview-pr-${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+
+      - name: Delete preview Cloud Run service
+        run: |
+          gcloud run services delete ${{ steps.meta.outputs.service_name }} \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} \
+            --quiet \
+          || echo "Service ${{ steps.meta.outputs.service_name }} not found or already deleted."
+
+      - name: Delete preview images from Artifact Registry
+        run: |
+          # Delete all tags matching this PR
+          gcloud artifacts docker tags list \
+            ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPOSITORY }}/${{ env.IMAGE_NAME }} \
+            --filter="tag:pr-${{ github.event.pull_request.number }}-*" \
+            --format='value(tag)' 2>/dev/null | while read -r TAG; do
+              echo "Deleting image tag: ${TAG}"
+              gcloud artifacts docker images delete \
+                "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPOSITORY }}/${{ env.IMAGE_NAME }}:${TAG}" \
+                --quiet --delete-tags 2>/dev/null || true
+          done
+          echo "Image cleanup complete."
+
+      - name: Comment cleanup status on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const merged = context.payload.pull_request.merged;
+            const marker = '<!-- preview-bot -->';
+
+            const status = merged ? 'merged' : 'closed';
+            const body = [
+              marker,
+              `### :wastebasket: Preview Environment Cleaned Up`,
+              '',
+              `The preview service \`${{ steps.meta.outputs.service_name }}\` has been deleted (PR ${status}).`
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body,
+              });
+            }

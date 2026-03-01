@@ -21,10 +21,20 @@ from src.queries import (
     query_release_notes,
 )
 from src.utils import format_description
+from src.db import get_database
+from src.auth import show_auth_ui, get_current_user
+from src.personalized import (
+    get_personalized_feed,
+    get_personalized_stats,
+    show_preferences_ui,
+)
+from src.ai_insights import generate_ai_summary
 
 load_dotenv()
 
+# ---------------------------------------------------------------------------
 # Page config
+# ---------------------------------------------------------------------------
 PAGE_ICON_PATH = Path(__file__).parent / "assets/google.png"
 page_icon = Image.open(PAGE_ICON_PATH) if PAGE_ICON_PATH.exists() else None
 st.set_page_config(
@@ -39,7 +49,7 @@ components.html("""
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-    
+
       gtag('config', 'G-4DDTVR6RLY');
     </script>
     <script type="text/javascript">
@@ -62,6 +72,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# ---------------------------------------------------------------------------
+# Header
+# ---------------------------------------------------------------------------
 sac.buttons(
     [
         sac.ButtonsItem(
@@ -87,7 +100,9 @@ with st.expander("About this App"):
     )
     st.markdown("More evolutions will come later.\nFor now it's mainly GCP oriented but we'll add Cloud providers.")
 
-# Config and connection
+# ---------------------------------------------------------------------------
+# BigQuery connection
+# ---------------------------------------------------------------------------
 _table = get_table_name()
 if not _table:
     st.warning("Please configure project/dataset/table in app/config.py")
@@ -105,7 +120,14 @@ except Exception as e:
     )
     st.stop()
 
-# Filter options
+# ---------------------------------------------------------------------------
+# MongoDB connection (optional – personalization features degrade gracefully)
+# ---------------------------------------------------------------------------
+db = get_database()
+
+# ---------------------------------------------------------------------------
+# Load filter options (needed for search AND preferences UI)
+# ---------------------------------------------------------------------------
 with st.spinner("Loading filter options..."):
     release_note_types = load_release_note_types(client, table_name) or [
         "Feature",
@@ -119,7 +141,104 @@ with st.spinner("Loading filter options..."):
     ]
     min_date, max_date = get_date_range(client, table_name)
 
-# Filters UI
+# ---------------------------------------------------------------------------
+# Sidebar – Authentication & Preferences
+# ---------------------------------------------------------------------------
+user = None
+with st.sidebar:
+    if db is not None:
+        st.subheader("Account")
+        user = show_auth_ui(db)
+        if user:
+            show_preferences_ui(
+                db,
+                user["id"],
+                product_names,
+                release_note_types,
+                user.get("preferences", {}),
+            )
+    else:
+        st.info("Personalization features are unavailable (MongoDB not configured).")
+
+# ---------------------------------------------------------------------------
+# Personalized Dashboard (shown at top of homepage when logged in)
+# ---------------------------------------------------------------------------
+if user and db is not None:
+    prefs = user.get("preferences", {})
+    has_prefs = bool(prefs.get("products") or prefs.get("types"))
+
+    if has_prefs:
+        st.header("Your Dashboard")
+
+        # --- AI Summary ---
+        feed_df = get_personalized_feed(client, table_name, prefs, limit=30)
+
+        with st.spinner("Generating AI summary..."):
+            summary = generate_ai_summary(db, user["id"], feed_df, prefs)
+        if summary:
+            with st.container(border=True):
+                st.subheader("AI Summary")
+                st.markdown(summary)
+        elif not feed_df.empty:
+            st.info(
+                "AI summary is unavailable. Set GOOGLE_API_KEY to enable it."
+            )
+
+        # --- Personalized Stats ---
+        st.subheader("Your Stats")
+        col_ts, col_dist = st.columns(2)
+        time_df, types_df = get_personalized_stats(client, table_name, prefs)
+
+        with col_ts:
+            if not time_df.empty:
+                fig = px.line(
+                    time_df,
+                    x="month",
+                    y="count",
+                    title="Your Products – Release Notes by Month",
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No time series data for your tracked products.")
+
+        with col_dist:
+            if not types_df.empty:
+                fig = px.pie(
+                    types_df,
+                    values="count",
+                    names="release_note_type",
+                    title="Your Products – Release Note Types",
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No type distribution data for your tracked products.")
+
+        # --- Personalized Feed ---
+        st.subheader("Recent Updates for You")
+        if not feed_df.empty:
+            for _, row in feed_df.iterrows():
+                with st.container():
+                    st.markdown(f"### {row['product_name']}")
+                    st.markdown(
+                        f"**Type:** {row['release_note_type']} | "
+                        f"**Published:** {row['published_at'].strftime('%Y-%m-%d')}"
+                    )
+                    st.markdown("**Description:** ")
+                    format_description(row["description"])
+                    st.divider()
+        else:
+            st.info("No recent notes for your tracked products in the last 30 days.")
+
+        st.markdown("---")
+    else:
+        st.info(
+            "Set your product and type preferences in the sidebar to unlock "
+            "your personalized dashboard with AI-powered summaries."
+        )
+
+# ---------------------------------------------------------------------------
+# Search & Filters
+# ---------------------------------------------------------------------------
 search_text = st.text_input("Search", "")
 pn, tn, dr = st.columns(3)
 with pn:
@@ -137,7 +256,9 @@ with dr:
     )
 apply_filters = st.button("Reload")
 
-# Pagination state
+# ---------------------------------------------------------------------------
+# Pagination
+# ---------------------------------------------------------------------------
 if "page" not in st.session_state:
     st.session_state.page = 1
 if "items_per_page" not in st.session_state:
@@ -189,6 +310,9 @@ results, total_count = query_release_notes(
 
 st.write(f"Found {total_count} release notes")
 
+# ---------------------------------------------------------------------------
+# Tabs – Notes & Insights (global)
+# ---------------------------------------------------------------------------
 tab1, tab2 = st.tabs(["Notes", "Insights"])
 
 with tab1:
@@ -253,5 +377,8 @@ with tab2:
         )
         st.plotly_chart(fig2, use_container_width=True)
 
+# ---------------------------------------------------------------------------
+# Footer
+# ---------------------------------------------------------------------------
 st.markdown("---")
 st.markdown("GCP Release Notes Navigator | By Brice Fotzo")
