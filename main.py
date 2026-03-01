@@ -163,7 +163,7 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 # Personalized Dashboard (shown at top of homepage when logged in)
 # ---------------------------------------------------------------------------
-if user and db:
+if user and db is not None:
     prefs = user.get("preferences", {})
     has_prefs = bool(prefs.get("products") or prefs.get("types"))
 
