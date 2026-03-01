@@ -45,14 +45,17 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       # ----------------------------------------------------------------
-      # Build image with Cloud Build → push to Artifact Registry
+      # Configure Docker for Artifact Registry & build/push image
       # ----------------------------------------------------------------
-      - name: Build and push image via Cloud Build
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push image
         run: |
-          gcloud builds submit \
-            --config=cloudbuild.yaml \
-            --substitutions=_REGION=${{ env.REGION }},_REPOSITORY=${{ env.AR_REPOSITORY }},_IMAGE_NAME=${{ env.IMAGE_NAME }},_IMAGE_TAG=${{ github.sha }} \
-            --project=${{ env.PROJECT_ID }}
+          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPOSITORY }}/${{ env.IMAGE_NAME }}"
+          docker build -t "${IMAGE}:${{ github.sha }}" -t "${IMAGE}:latest" .
+          docker push "${IMAGE}:${{ github.sha }}"
+          docker push "${IMAGE}:latest"
 
       # ----------------------------------------------------------------
       # Deploy to Cloud Run

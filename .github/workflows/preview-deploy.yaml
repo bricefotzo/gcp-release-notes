@@ -47,12 +47,14 @@ jobs:
           echo "service_name=${SERVICE_NAME}" >> "$GITHUB_OUTPUT"
           echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
 
-      - name: Build and push image via Cloud Build
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push image
         run: |
-          gcloud builds submit \
-            --config=cloudbuild.yaml \
-            --substitutions=_REGION=${{ env.REGION }},_REPOSITORY=${{ env.AR_REPOSITORY }},_IMAGE_NAME=${{ env.IMAGE_NAME }},_IMAGE_TAG=${{ steps.meta.outputs.image_tag }} \
-            --project=${{ env.PROJECT_ID }}
+          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPOSITORY }}/${{ env.IMAGE_NAME }}"
+          docker build -t "${IMAGE}:${{ steps.meta.outputs.image_tag }}" .
+          docker push "${IMAGE}:${{ steps.meta.outputs.image_tag }}"
 
       - name: Deploy preview to Cloud Run
         id: deploy
