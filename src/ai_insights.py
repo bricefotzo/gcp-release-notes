@@ -6,7 +6,10 @@ from datetime import datetime, timedelta, timezone
 
 import pandas as pd
 import streamlit as st
+from dotenv import load_dotenv
 from pymongo.database import Database
+
+load_dotenv()
 
 
 def _get_genai_model():

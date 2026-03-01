@@ -3,8 +3,11 @@
 import os
 
 import streamlit as st
+from dotenv import load_dotenv
 from pymongo import MongoClient
 from pymongo.database import Database
+
+load_dotenv()
 
 
 @st.cache_resource

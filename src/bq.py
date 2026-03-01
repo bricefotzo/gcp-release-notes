@@ -1,9 +1,13 @@
 """BigQuery client and connection handling."""
 
 import os
+
 import streamlit as st
+from dotenv import load_dotenv
 from google.cloud import bigquery
 from google.oauth2 import service_account
+
+load_dotenv()
 
 
 @st.cache_resource
