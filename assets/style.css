@@ -101,6 +101,14 @@ section[data-testid="stSidebar"] .stMarkdown h3 {
     border-bottom: 2px solid var(--primary-bg) !important;
 }
 
+section[data-testid="stSidebar"] .stSelectbox div > div {
+    color: var(--text-primary) !important;
+}
+
+section[data-testid="stSidebar"] .stSelectbox div  div > svg {
+    fill: var(--primary) !important;
+}
+
 /* Sidebar inputs */
 section[data-testid="stSidebar"] .stTextInput > div > div {
     border-radius: var(--radius-sm) !important;
@@ -114,15 +122,24 @@ section[data-testid="stSidebar"] .stTextInput > div > div:focus-within {
     box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12) !important;
 }
 
-section[data-testid="stSidebar"] .stMultiSelect > div > div {
+section[data-testid="stSidebar"] .stMultiSelect > div > div > div {
     border-radius: var(--radius-sm) !important;
     border: 1.5px solid var(--border-color) !important;
     background: white !important;
+   
 }
+
+section[data-testid="stSidebar"] .stMultiSelect > div > div > div > div > div,
+section[data-testid="stSidebar"] .stMultiSelect > div > div > div > div > svg{
+    color: var(--text-primary) !important;
+   
+}
+
 
 section[data-testid="stSidebar"] .stMultiSelect > div > div:focus-within {
     border-color: var(--primary) !important;
     box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12) !important;
+    
 }
 
 section[data-testid="stSidebar"] .stDateInput > div > div {
@@ -130,6 +147,22 @@ section[data-testid="stSidebar"] .stDateInput > div > div {
     border: 1.5px solid var(--border-color) !important;
     background: white !important;
 }
+
+section[data-testid="stSidebar"] .stDateInput > div > div > div {
+    border-radius: var(--radius-sm) !important;
+    border: none !important;
+    background: white !important;
+
+}
+
+section[data-testid="stSidebar"] .stDateInput > div > div > div > input {
+    color: var(--text-primary) !important;
+}
+
+section[data-testid="stSidebar"] .stExpander  {
+    color: var(--text-primary) !important;
+}
+
 
 /* Sidebar button */
 section[data-testid="stSidebar"] .stButton > button {

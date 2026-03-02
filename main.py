@@ -549,7 +549,7 @@ with tab_insights:
 st.markdown(
     """
     <div class="app-footer">
-        Release Notes Navigator &nbsp;·&nbsp; Built by <a href="#">Brice Fotzo</a>
+        Release Notes Navigator &nbsp;·&nbsp; Built by <a href="https://www.linkedin.com/in/bricefotzo/">Brice Fotzo</a>
         &nbsp;·&nbsp; Powered by BigQuery & Streamlit
     </div>
     """,
