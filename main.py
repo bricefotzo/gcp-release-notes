@@ -363,7 +363,7 @@ PLOTLY_LAYOUT = dict(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
     margin=dict(l=20, r=20, t=40, b=20),
-    title_font=dict(size=14, color="#202124", family="Inter, sans-serif"),
+    title=dict(text="", font=dict(size=14, color="#202124", family="Inter, sans-serif")),
     hoverlabel=dict(
         bgcolor="white",
         font_size=13,
