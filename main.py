@@ -359,16 +359,17 @@ with tab_notes:
 
 # Plotly theme
 PLOTLY_LAYOUT = dict(
-    font=dict(family="Inter, sans-serif", size=12, color="#5F6368"),
+    font=dict(family="Inter, sans-serif", size=12, color="#3C4043"),
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
     margin=dict(l=20, r=20, t=40, b=20),
     title_font=dict(size=14, color="#202124", family="Inter, sans-serif"),
     hoverlabel=dict(
         bgcolor="white",
-        font_size=12,
+        font_size=13,
         font_family="Inter, sans-serif",
-        bordercolor="#E8EAED",
+        font_color="#202124",
+        bordercolor="#DADCE0",
     ),
 )
 
@@ -411,13 +412,13 @@ with tab_insights:
                 showgrid=False,
                 tickformat="%b %Y",
                 linecolor="#E8EAED",
-                tickfont=dict(size=11),
+                tickfont=dict(size=11, color="#3C4043"),
             ),
             yaxis=dict(
                 showgrid=True,
                 gridcolor="rgba(232, 234, 237, 0.5)",
                 gridwidth=1,
-                tickfont=dict(size=11),
+                tickfont=dict(size=11, color="#3C4043"),
             ),
             height=350,
         )
@@ -488,11 +489,11 @@ with tab_insights:
         )])
         fig3.update_layout(
             **PLOTLY_LAYOUT,
-            yaxis=dict(autorange="reversed", tickfont=dict(size=11)),
+            yaxis=dict(autorange="reversed", tickfont=dict(size=11, color="#3C4043")),
             xaxis=dict(
                 showgrid=True,
                 gridcolor="rgba(232, 234, 237, 0.5)",
-                tickfont=dict(size=11),
+                tickfont=dict(size=11, color="#3C4043"),
             ),
             height=400,
         )
@@ -534,7 +535,7 @@ with tab_insights:
             fig4.update_layout(
                 **PLOTLY_LAYOUT,
                 xaxis=dict(showticklabels=False, showgrid=False),
-                yaxis=dict(tickfont=dict(size=11), autorange="reversed"),
+                yaxis=dict(tickfont=dict(size=11, color="#3C4043"), autorange="reversed"),
                 height=400,
             )
             st.plotly_chart(fig4, use_container_width=True)
