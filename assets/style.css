@@ -246,48 +246,30 @@ section[data-testid="stSidebar"] .stButton > button:active {
     z-index: 1;
 }
 
-/* ---------- Metric Cards ---------- */
-.metric-container {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+/* ---------- Results Summary ---------- */
+.results-summary {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    padding: 0.6rem 0;
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
 }
 
-.metric-card {
-    background: var(--bg-card);
-    border-radius: var(--radius-md);
-    padding: 1.25rem 1.5rem;
-    flex: 1;
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-sm);
-    transition: var(--transition);
-}
-
-.metric-card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-}
-
-.metric-label {
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-tertiary);
-    margin-bottom: 0.35rem;
-}
-
-.metric-value {
-    font-size: 1.6rem;
+.results-count {
     font-weight: 700;
-    color: var(--text-primary);
-    line-height: 1.2;
+    font-size: 1rem;
+    color: var(--primary);
 }
 
-.metric-value.blue { color: var(--primary); }
-.metric-value.green { color: var(--accent-green); }
-.metric-value.purple { color: var(--accent-purple); }
-.metric-value.teal { color: var(--accent-teal); }
+.results-platform {
+    font-weight: 600;
+    color: var(--accent-teal);
+}
+
+.results-page {
+    color: var(--text-tertiary);
+    font-size: 0.82rem;
+}
 
 /* ---------- Tab Styling ---------- */
 .stTabs [data-baseweb="tab-list"] {
