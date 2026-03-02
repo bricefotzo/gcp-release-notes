@@ -260,14 +260,13 @@ tab_notes, tab_insights = st.tabs(["Release Notes", "Insights & Analytics"])
 # ║                     NOTES TAB                                ║
 # ╚══════════════════════════════════════════════════════════════╝
 with tab_notes:
-    filter_text = f"with <strong>{active_filters}</strong> active filter{'s' if active_filters != 1 else ''}" if active_filters else "with no filters"
+    filter_text = f"given your <strong>{active_filters}</strong> active filter{'s' if active_filters != 1 else ''}" if active_filters else ""
     st.markdown(
         f"""
         <div class="results-summary">
             <span class="results-count">{total_count:,}</span> notes found on
             <span class="results-platform">{selected_platform}</span>
-            {filter_text}
-            <span class="results-page">· Page {current_page} of {total_pages}</span>
+            {filter_text}· <span class="results-page">Page {current_page} of {total_pages}</span>
         </div>
         """,
         unsafe_allow_html=True,
