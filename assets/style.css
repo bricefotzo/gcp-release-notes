@@ -1,5 +1,5 @@
 /* ============================================================
-   GCP Release Notes Navigator — Custom Design System
+   Release Notes Navigator — Custom Design System
    A modern, polished UI that transcends default Streamlit look
    ============================================================ */
 
@@ -604,6 +604,33 @@ span[data-baseweb="tag"] span[role="presentation"] {
     font-size: 0.78rem;
     color: var(--text-tertiary);
     margin-bottom: 1rem;
+}
+
+/* ---------- Platform badge in hero ---------- */
+.hero-platform-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 50px;
+    padding: 0.3rem 0.85rem;
+    margin-bottom: 0.75rem;
+    position: relative;
+    z-index: 1;
+}
+
+.hero-platform-badge svg {
+    width: 16px;
+    height: 16px;
+}
+
+.hero-platform-badge span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 0.02em;
 }
 
 /* ---------- Responsive adjustments ---------- */
