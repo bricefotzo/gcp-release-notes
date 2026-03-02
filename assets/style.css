@@ -66,6 +66,28 @@ section[data-testid="stSidebar"] > div:first-child {
     padding-top: 1rem !important;
 }
 
+/* Sidebar collapse/expand arrow */
+button[data-testid="stSidebarCollapseButton"],
+button[data-testid="stSidebarNavCollapseButton"],
+[data-testid="stSidebar"] button[kind="header"] {
+    color: var(--text-secondary) !important;
+}
+
+button[data-testid="stSidebarCollapseButton"] svg,
+button[data-testid="stSidebarNavCollapseButton"] svg,
+button[data-testid="collapsedControl"] svg {
+    fill: var(--text-secondary) !important;
+    stroke: var(--text-secondary) !important;
+}
+
+button[data-testid="collapsedControl"] {
+    color: var(--text-secondary) !important;
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-sm) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
 section[data-testid="stSidebar"] .stMarkdown h3 {
     font-size: 0.7rem !important;
     font-weight: 700 !important;
