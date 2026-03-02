@@ -4,6 +4,7 @@ from datetime import date
 from pathlib import Path
 from typing import cast
 
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
@@ -522,19 +523,21 @@ with tab_insights:
                 index="day_of_week", columns="week", values="count", fill_value=0
             )
             day_labels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+            week_labels = [f"W{pd.Timestamp(w).isocalendar()[1]}" for w in pivot_df.columns]
 
             fig4 = go.Figure(data=go.Heatmap(
                 z=pivot_df.values,
+                x=week_labels,
                 y=[day_labels[int(d) - 1] for d in pivot_df.index],
                 colorscale=[[0, "#F8FAFE"], [0.5, "#A8C7FA"], [1, "#1A73E8"]],
                 showscale=False,
-                hovertemplate="<b>%{y}</b><br>%{z} notes<extra></extra>",
+                hovertemplate="<b>%{x} · %{y}</b><br>%{z} notes<extra></extra>",
                 xgap=3,
                 ygap=3,
             ))
             fig4.update_layout(
                 **PLOTLY_LAYOUT,
-                xaxis=dict(showticklabels=False, showgrid=False),
+                xaxis=dict(showgrid=False, tickfont=dict(size=10, color="#3C4043")),
                 yaxis=dict(tickfont=dict(size=11, color="#3C4043"), autorange="reversed"),
                 height=400,
             )
