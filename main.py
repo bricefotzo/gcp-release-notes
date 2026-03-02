@@ -245,37 +245,13 @@ results, total_count = query_release_notes(
 
 total_pages = max(1, (total_count + st.session_state.items_per_page - 1) // st.session_state.items_per_page)
 
-# --------------- Metrics Row ---------------
+# --------------- Summary ---------------
 active_filters = sum([
     bool(search_text),
     bool(selected_products),
     bool(selected_types),
     start_date != min_date or end_date != max_date,
 ])
-
-st.markdown(
-    f"""
-    <div class="metric-container">
-        <div class="metric-card">
-            <div class="metric-label">Total Results</div>
-            <div class="metric-value blue">{total_count:,}</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-label">Current Page</div>
-            <div class="metric-value">{current_page} <span style="font-size:0.85rem;color:#5F6368;font-weight:400">of {total_pages}</span></div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-label">Active Filters</div>
-            <div class="metric-value purple">{active_filters}</div>
-        </div>
-        <div class="metric-card">
-            <div class="metric-label">Platform</div>
-            <div class="metric-value teal" style="font-size:1.1rem">{selected_platform}</div>
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
 
 # --------------- Tabs ---------------
 tab_notes, tab_insights = st.tabs(["Release Notes", "Insights & Analytics"])
@@ -284,6 +260,17 @@ tab_notes, tab_insights = st.tabs(["Release Notes", "Insights & Analytics"])
 # ║                     NOTES TAB                                ║
 # ╚══════════════════════════════════════════════════════════════╝
 with tab_notes:
+    filter_text = f"given your <strong>{active_filters}</strong> active filter{'s' if active_filters != 1 else ''}" if active_filters else ""
+    st.markdown(
+        f"""
+        <div class="results-summary">
+            <span class="results-count">{total_count:,}</span> notes found on
+            <span class="results-platform">{selected_platform}</span>
+            {filter_text}· <span class="results-page">Page {current_page} of {total_pages}</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     if not results.empty:
         for _, row in results.iterrows():
             type_class = get_type_css_class(row["release_note_type"])
