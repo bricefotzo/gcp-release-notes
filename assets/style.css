@@ -67,17 +67,19 @@ section[data-testid="stSidebar"] > div:first-child {
 }
 
 /* Sidebar collapse/expand arrow */
+div[data-testid="stSidebarCollapsedControl"],
 button[data-testid="stSidebarCollapseButton"],
 button[data-testid="stSidebarNavCollapseButton"],
 [data-testid="stSidebar"] button[kind="header"] {
-    color: var(--text-secondary) !important;
+    color: var(--primary) !important;
 }
 
 button[data-testid="stSidebarCollapseButton"] svg,
 button[data-testid="stSidebarNavCollapseButton"] svg,
+button[data-testid="stBaseButton-headerNoPadding"] svg,
 button[data-testid="collapsedControl"] svg {
-    fill: var(--text-secondary) !important;
-    stroke: var(--text-secondary) !important;
+    fill: var(--primary) !important;
+    
 }
 
 button[data-testid="collapsedControl"] {
