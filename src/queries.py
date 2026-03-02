@@ -73,7 +73,7 @@ def query_release_notes(
     return results_df, count_df["total"][0]
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner="Loading release note types...")
 def load_release_note_types(_client: Client, table_name: str) -> list:
     """Load distinct release_note_type values."""
     query = f"""
@@ -86,7 +86,7 @@ def load_release_note_types(_client: Client, table_name: str) -> list:
     return df["release_note_type"].tolist()
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner="Loading product names...")
 def load_product_names(_client: Client, table_name: str) -> list:
     """Load distinct product_name values."""
     query = f"""
@@ -99,7 +99,7 @@ def load_product_names(_client: Client, table_name: str) -> list:
     return df["product_name"].tolist()
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner=False)
 def get_date_range(_client: Client, table_name: str) -> tuple:
     """Return (min_date, max_date) for published_at in the table."""
     query = f"""
