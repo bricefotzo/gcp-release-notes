@@ -1,0 +1,7 @@
+streamlit>=1.44.0
+streamlit-antd-components>=0.3.2
+plotly>=6.0.1
+pandas>=2.2.3
+pillow>=11.0.0
+python-dotenv>=1.1.0
+requests>=2.32.0
