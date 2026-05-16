@@ -1,11 +1,11 @@
 """Formatting utilities for release note descriptions."""
 
 import re
+
 import streamlit as st
 
 TRACK_PATTERN = r'\* \{([^}]+)\}\{: track-name=\'([^\']+)\'\}'
 
-# Mapping of release note types to CSS classes
 _TYPE_MAP = {
     "FEATURE": "type-feature",
     "FIX": "type-fix",
@@ -26,24 +26,19 @@ _BADGE_MAP = {
 
 
 def get_type_css_class(release_type: str | None) -> str:
-    """Return the CSS class for a release note card based on its type."""
     if not release_type:
         return "type-default"
     return _TYPE_MAP.get(release_type.upper().replace(" ", "_"), "type-default")
 
 
 def get_badge_class(release_type: str | None) -> str:
-    """Return the CSS badge class for a release note type."""
     if not release_type:
         return "badge-default"
     return _BADGE_MAP.get(release_type.upper().replace(" ", "_"), "badge-default")
 
 
 def format_description(description: str | None) -> str:
-    """
-    Format description for display; handles track-name sections with tabs.
-    Renders via st and returns empty string (for compatibility).
-    """
+    """Format description for display; handles track-name sections with tabs."""
     if not description or not isinstance(description, str):
         return ""
     description = description.replace(

@@ -1,115 +1,257 @@
 # GCP Release Notes Navigator
 
-A Streamlit app that turns **Google Cloud release notes** into searchable insights. Browse and filter official GCP release notes from the BigQuery public dataset.
+A web app for browsing, filtering, and analyzing Google Cloud release notes from the BigQuery public dataset. Built for developers, data engineers, and cloud architects who need to track breaking changes, deprecations, and new features across GCP products.
+
+---
+
+## Architecture
+
+```
+Browser
+  │
+  ▼
+frontend/    Streamlit + nginx    port 8080 (container) → 8081 (host, dev)
+  │
+  ▼
+backend/     FastAPI              port 8000
+  │
+  ├──▶ BigQuery          bigquery-public-data.google_cloud_release_notes.release_notes
+  └──▶ LLM               Docker Model Runner — llama3.2 (local) / Cloud Run GPU (remote)
+```
+
+Both services run as Docker containers orchestrated by Docker Compose. For production,
+they deploy as Cloud Run services via `gcloud run compose up`.
+
+---
 
 ## Features
 
-- **Search** – Full-text search by keyword in release note descriptions
-- **Filters**
-  - **Product** – Filter by Google Cloud service or product
-  - **Release note type** – Filter by type of change
-  - **Date range** – Filter by publication date
-- **Notes tab** – Paginated list of release notes as cards (product, type, date, description)
-- **Insights tab** – Overview charts:
-  - Release notes by month (last 12 months)
-  - Distribution of release note types
+- **Search** – Full-text keyword search across release note descriptions
+- **Filter** – By product, note type (FEATURE, FIX, BREAKING\_CHANGE, DEPRECATION, …), and date range
+- **Notes tab** – Paginated cards with product, badge, date, and description
+- **Insights tab** – Charts: release volume by month, type distribution, top products, activity heatmap
+- **Breaking changes banner** – Surfaces BREAKING\_CHANGE notes that match the active filters
+- **Watchlist** – Save favourite products; auto-applied on the next visit
+- **Ask AI** – Natural-language Q&A grounded in the current result set (llama3.2)
+- **Export** – Download visible notes as CSV or JSON; shareable filter URLs
 
-## Prerequisites
+---
 
-- **Python 3.12+**
-- **[uv](https://docs.astral.sh/uv/)** – Fast Python package installer and resolver
-- **Google Cloud** – Access to BigQuery (app uses public dataset `bigquery-public-data.google_cloud_release_notes.release_notes`)
-- **Credentials** – Service account with BigQuery read access
+## Local Development
 
-## Setup with uv
+### Prerequisites
 
-### 1. Install uv
+- **Docker Desktop 4.40+** with Model Runner enabled:
+  ```bash
+  docker desktop enable model-runner --tcp 12434
+  ```
+- A GCP project with billing enabled (queries against the public dataset are billed to your project)
+- `gcloud` CLI for generating credentials
 
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-# or: pip install uv
-```
-
-### 2. Clone and sync
+### 1. Clone
 
 ```bash
+git clone https://github.com/bricefotzo/gcp-release-notes.git
 cd gcp-release-notes
-uv sync
 ```
 
-This creates a virtual environment (if needed) and installs dependencies from `pyproject.toml`.
+### 2. Configure credentials
 
-### 3. Configure credentials
-
-**Option A – Environment variable (local)**
+The backend uses [Application Default Credentials (ADC)](https://cloud.google.com/docs/authentication/application-default-credentials) — no service account JSON key required locally.
 
 ```bash
-export GOOGLE_APPLICATION_CREDENTIALS=/path/to/your-service-account-key.json
+gcloud auth application-default login
+cp ~/.config/gcloud/application_default_credentials.json adc.json
 ```
 
-**Option B – Streamlit secrets (e.g. Streamlit Cloud)**
+The override file mounts `adc.json` (or `$ADC_PATH` if set) read-only into the backend
+container and points `GOOGLE_APPLICATION_CREDENTIALS` at it automatically.
 
-Create `.streamlit/secrets.toml`:
+### 3. Configure the backend environment
 
-```toml
-gcp_service_account = """
-{
-  "type": "service_account",
-  "project_id": "your-project-id",
-  ...
-}
-"""
+Edit `backend/.env` (create it from the template below if it doesn't exist):
+
+```dotenv
+# GCP project that will be billed for BigQuery query jobs
+PROJECT_ID=your-gcp-project-id
+
+# Public dataset coordinates — leave these as-is
+DATA_PROJECT_ID=bigquery-public-data
+DATASET_ID=google_cloud_release_notes
+TABLE_ID=release_notes
+
+# LLM model served by Docker Model Runner
+LLM_MODEL=ai/llama3.2
 ```
 
-Optional: create a `.env` file for other variables; the app loads it via `python-dotenv`.
+> `LLM_URL` is injected automatically by the Docker Compose `models:` key — do not set it manually.
 
-
-## Run the app
+### 4. Start in watch mode
 
 ```bash
-uv run streamlit run main.py
+docker compose watch
 ```
 
-Open the URL shown in the terminal (usually `http://localhost:8501`).
+| Service      | URL                          |
+|--------------|------------------------------|
+| Frontend     | http://localhost:8081         |
+| Backend API  | http://localhost:8000         |
+| API docs     | http://localhost:8000/docs    |
 
-## Project structure
+`compose watch` syncs Python/CSS/asset changes into running containers without a rebuild.
+Streamlit detects changed files and reloads the UI automatically; uvicorn reloads the API.
+Editing `requirements.txt` or a `Dockerfile` triggers a full rebuild.
+
+**Standard start (no file watching):**
+```bash
+docker compose up --build
+```
+
+---
+
+## Cloud Run Deployment
+
+`gcloud run compose` reads your `compose.yaml`, builds images, pushes them to Artifact Registry,
+and deploys each service as a Cloud Run service — including the LLM as a GPU-backed Cloud Run
+model service via the `x-google-cloudrun` extension fields.
+
+> Reference: [gcloud run compose up — deploy a multi-service GPU stack to Cloud Run from Docker Compose](https://medium.com/@bricefotzo/gcloud-run-compose-up-deploy-a-multi-service-gpu-stack-to-cloud-run-from-docker-compose-77d650b39972)
+
+### 1. Enable required APIs
+
+```bash
+export PROJECT_ID=your-gcp-project-id
+export REGION=us-central1   # pick any Cloud Run region
+
+gcloud services enable \
+  run.googleapis.com \
+  artifactregistry.googleapis.com \
+  cloudbuild.googleapis.com \
+  bigquery.googleapis.com \
+  iam.googleapis.com \
+  --project "$PROJECT_ID"
+```
+
+### 2. Authenticate and configure gcloud
+
+```bash
+gcloud auth login
+gcloud config set project "$PROJECT_ID"
+gcloud config set run/region "$REGION"
+
+# Allow Docker to push images to Artifact Registry
+gcloud auth configure-docker "${REGION}-docker.pkg.dev"
+```
+
+### 3. Create a service account for the backend
+
+On Cloud Run, ADC is satisfied by the service account attached to the Cloud Run service —
+no JSON key is needed.
+
+```bash
+# Create the service account
+gcloud iam service-accounts create gcp-rn-backend \
+  --display-name="GCP Release Notes Backend" \
+  --project "$PROJECT_ID"
+
+SA="gcp-rn-backend@${PROJECT_ID}.iam.gserviceaccount.com"
+
+# Grant BigQuery read access (the public dataset is free to read,
+# but query jobs are billed to PROJECT_ID)
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:${SA}" \
+  --role="roles/bigquery.dataViewer"
+
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:${SA}" \
+  --role="roles/bigquery.jobUser"
+```
+
+### 4. Deploy
+
+```bash
+gcloud run compose up
+```
+
+This single command:
+1. Builds the `front` and `back` Docker images
+2. Pushes them to Artifact Registry
+3. Deploys `front`, `back`, and the `llm` model as Cloud Run services
+4. Wires service-to-service networking automatically
+
+When the command completes, gcloud prints the public URL of the `front` service.
+
+To attach the service account created above to the backend service after the first deploy:
+
+```bash
+gcloud run services update back \
+  --service-account="${SA}" \
+  --region="$REGION" \
+  --project="$PROJECT_ID"
+```
+
+### 5. Redeploy after changes
+
+```bash
+gcloud run compose up
+```
+
+Re-running the same command rebuilds changed images and rolls out new Cloud Run revisions in-place.
+
+### 6. Tear down
+
+```bash
+# Delete Cloud Run services
+gcloud run compose down
+
+# Delete container images from Artifact Registry (optional)
+gcloud artifacts repositories list --project "$PROJECT_ID"
+gcloud artifacts repositories delete REPO_NAME \
+  --location="$REGION" \
+  --project="$PROJECT_ID"
+```
+
+---
+
+## Project Structure
 
 ```
 gcp-release-notes/
-├── app/
-│   ├── __init__.py
-│   ├── config.py      # BigQuery project/dataset/table constants
-│   ├── bq.py           # BigQuery client (env or Streamlit secrets)
-│   ├── queries.py     # execute_query, query_release_notes, load_* filters, get_date_range
-│   └── utils.py       # format_description (track-name tabs, markdown)
-├── main.py             # Streamlit entrypoint (UI + wiring)
-├── pyproject.toml      # uv/pip project and dependencies
-└── README.md
+├── frontend/
+│   ├── main.py              # Streamlit UI — single file, top-to-bottom execution
+│   ├── src/utils.py         # HTML formatting helpers, badge/type CSS mappers
+│   ├── assets/style.css     # All custom CSS (loaded once at startup)
+│   ├── nginx.conf           # Reverse proxy: port 8080 → Streamlit on 8501
+│   ├── start.sh             # Entrypoint: starts Streamlit, then nginx
+│   ├── Dockerfile
+│   └── requirements.txt
+├── backend/
+│   ├── app.py               # FastAPI endpoints
+│   ├── src/ai.py            # LLM wrappers: summarize_release_notes(), generate_sql_query()
+│   ├── src/queries.py       # BigQuery query builders
+│   ├── src/bq.py            # BigQuery client — ADC-based, no JSON key needed
+│   ├── src/config.py        # Env var wrappers for BQ table coordinates
+│   ├── .env                 # Local environment variables (not committed)
+│   ├── Dockerfile
+│   └── requirements.txt
+├── compose.yaml             # Base Compose config (used for production and local)
+├── compose.override.yaml    # Dev overrides: watch mode + ADC credential mount
+└── .github/workflows/       # CI/CD pipeline
 ```
 
-| Path | Purpose |
-|------|---------|
-| `main.py` | Streamlit entrypoint: page config, filters, Notes/Insights tabs, pagination |
-| `app/config.py` | `PROJECT_ID`, `DATASET_ID`, `TABLE_ID`, `get_table_name()` |
-| `app/bq.py` | `get_bigquery_client()` using env or Streamlit secrets |
-| `app/queries.py` | BigQuery helpers: `execute_query`, `query_release_notes`, `load_release_note_types`, `load_product_names`, `get_date_range` |
-| `app/utils.py` | `format_description()` for release note descriptions (tracks, markdown) |
+---
 
-## Data source
+## Data Source
 
-- **Dataset:** `bigquery-public-data.google_cloud_release_notes.release_notes`
-- **Fields used:** `description`, `release_note_type`, `published_at`, `product_name`, `product_version_name`
+| Field                  | Value                                                        |
+|------------------------|--------------------------------------------------------------|
+| Dataset                | `bigquery-public-data.google_cloud_release_notes.release_notes` |
+| Key fields             | `description`, `release_note_type`, `published_at`, `product_name`, `product_version_name` |
+| Release note types     | FEATURE · FIX · ISSUE · ANNOUNCEMENT · BREAKING\_CHANGE · DEPRECATION |
+| Access                 | Public, read-only — queries are billed to your own project    |
 
-## Optional: Vertex AI
-
-To add Vertex AI later (e.g. summarization), install the optional dependency:
-
-```bash
-uv sync --extra vertex
-```
-
-Then wire Vertex in your code; the base app does not use it.
+---
 
 ## License
 
-Use and modify as you like. Data is from Google Cloud’s public BigQuery datasets.
+Use and modify as you like. Release note data is from Google Cloud's public BigQuery datasets.

@@ -1,0 +1,46 @@
+services:
+  front:
+    develop:
+      watch:
+        # Python sources — Streamlit auto-reloads on file changes
+        - path: ./frontend/main.py
+          target: /app/main.py
+          action: sync
+        - path: ./frontend/src
+          target: /app/src
+          action: sync
+        # Static assets — synced immediately, Streamlit picks them up on next rerun
+        - path: ./frontend/assets
+          target: /app/assets
+          action: sync
+        # Structural changes require a full rebuild
+        - path: ./frontend/requirements.txt
+          action: rebuild
+        - path: ./frontend/Dockerfile
+          action: rebuild
+        - path: ./frontend/nginx.conf
+          action: rebuild
+
+  back:
+    volumes:
+      - ${ADC_PATH:-./adc.json}:/tmp/adc.json:ro
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/tmp/adc.json
+    develop:
+      watch:
+        # Python sources — uvicorn --reload detects changes automatically
+        - path: ./backend/app.py
+          target: /app/app.py
+          action: sync
+        - path: ./backend/src
+          target: /app/src
+          action: sync
+        # .env changes need a process restart to re-read env vars
+        - path: ./backend/.env
+          target: /app/.env
+          action: sync+restart
+        # Structural changes require a full rebuild
+        - path: ./backend/requirements.txt
+          action: rebuild
+        - path: ./backend/Dockerfile
+          action: rebuild
