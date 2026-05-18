@@ -66,22 +66,42 @@ section[data-testid="stSidebar"] > div:first-child {
     padding-top: 1rem !important;
 }
 
-/* Sidebar collapse/expand arrow — must be visible: visible to override the
+/* Sidebar collapse/expand arrow — visibility:visible overrides the
    stHeader parent which is hidden via visibility:hidden above */
 div[data-testid="stSidebarCollapsedControl"],
 button[data-testid="stSidebarCollapseButton"],
 button[data-testid="stSidebarNavCollapseButton"],
 [data-testid="stSidebar"] button[kind="header"] {
-    color: var(--primary) !important;
-    /* visibility: visible !important; */
+    color: var(--text-primary) !important;
+    visibility: visible !important;
 }
+
+[data-testid="stIconMaterial"]  {
+    color: var(--primary) !important;
+    visibility: visible !important;
+}
+
+input[aria-label="Product"],
+input[aria-label="Type"],
+input[aria-label="Platform"],
+input[aria-label="Release Date"],
+input[aria-label="Watched products"] {
+    color: var(--text-primary) !important;
+    visibility: visible !important;
+}
+
+input[aria-label="Type"] {
+    color: var(--text-primary) !important;
+    visibility: visible !important;
+}
+
 
 button[data-testid="stSidebarCollapseButton"] svg,
 button[data-testid="stSidebarNavCollapseButton"] svg,
 button[data-testid="stBaseButton-headerNoPadding"] svg,
 button[data-testid="collapsedControl"] svg {
-    fill: var(--primary) !important;
-    
+    fill: var(--text-primary) !important;
+    stroke: var(--text-primary) !important;
 }
 
 button[data-testid="collapsedControl"] {
