@@ -168,6 +168,28 @@
   overflow: hidden;
 }
 
+.noteDesc p {
+  display: inline;
+  margin: 0;
+}
+
+.noteDesc a {
+  color: var(--blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.noteDesc a:hover {
+  color: var(--text);
+}
+
+.noteDesc code {
+  font-family: monospace;
+  background: var(--surface-2);
+  padding: 0.1rem 0.25rem;
+  border-radius: var(--r-sm);
+  font-size: 0.75rem;
+}
+
 /* ── Settings Panel ───────────────────────────────────────────── */
 .formGroup {
   margin-top: 1rem;

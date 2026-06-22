@@ -167,7 +167,10 @@ Provide ONLY the final generated social post text. No introductory remarks like 
                         <span className={styles.noteProduct}>{note.product_name}</span>
                         <span className={styles.noteDate}>{formatDate(note.published_at)}</span>
                       </div>
-                      <p className={styles.noteDesc}>{stripHtml(note.description)}</p>
+                      <div 
+                        className={styles.noteDesc}
+                        dangerouslySetInnerHTML={{ __html: note.description }}
+                      />
                     </div>
                   </li>
                 );

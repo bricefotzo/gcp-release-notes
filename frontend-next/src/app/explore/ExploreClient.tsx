@@ -385,7 +385,10 @@ function NoteRow({
           {isBookmarked ? "🔖 Saved" : "bookmark"}
         </button>
       </div>
-      <p className={styles.noteDesc}>{stripHtml(note.description)}</p>
+      <div 
+        className={styles.noteDesc}
+        dangerouslySetInnerHTML={{ __html: note.description }}
+      />
     </li>
   );
 }
