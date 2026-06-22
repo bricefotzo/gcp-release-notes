@@ -124,6 +124,7 @@ with st.sidebar:
         "",
         placeholder="e.g. Kubernetes, IAM, BigQuery...",
         label_visibility="collapsed",
+        
     )
 
     st.markdown("### Filters")

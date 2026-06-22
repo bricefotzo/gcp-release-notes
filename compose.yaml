@@ -10,6 +10,17 @@ services:
     depends_on:
       back:
         condition: service_healthy
+  # ── Next.js frontend (port 3000) ────────────────────────────────
+  front-next:
+    build:
+      context: ./frontend-next
+    ports:
+      - "8095:3000"
+    environment:
+      - BACKEND_URL=http://back:8000
+    depends_on:
+      back:
+        condition: service_healthy
   # ── FastAPI backend (port 8000) ─────────────────────────────────
   back:
     build:

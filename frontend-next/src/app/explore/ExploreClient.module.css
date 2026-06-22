@@ -1,0 +1,389 @@
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+/* ── Your Stack section ───────────────────────────────────────── */
+.stackSection {
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 1rem 1.25rem;
+  margin-bottom: 2rem;
+  background: var(--surface);
+}
+
+.stackHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.stackLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-3);
+}
+
+.stackFilterBtn {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  color: var(--text-2);
+  background: transparent;
+  cursor: pointer;
+  transition: all 120ms var(--ease);
+}
+.stackFilterBtn:hover { color: var(--text); border-color: var(--amber-border); }
+.stackFilterActive {
+  background: var(--amber-dim);
+  border-color: var(--amber-border);
+  color: var(--amber);
+}
+
+.stackBody {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stackEmpty {
+  font-size: 0.82rem;
+  color: var(--text-3);
+  font-style: italic;
+}
+
+/* Saved product chip */
+.stackChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.5rem 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: var(--amber-dim);
+  border: 1px solid var(--amber-border);
+  color: var(--amber);
+}
+
+.stackChipRemove {
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--amber);
+  opacity: 0.6;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  transition: opacity 100ms;
+}
+.stackChipRemove:hover { opacity: 1; }
+
+/* Add product picker */
+.stackPicker {
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  border: 1px dashed var(--border-strong);
+  color: var(--text-2);
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 120ms, color 120ms;
+  appearance: none;
+  font-family: inherit;
+}
+.stackPicker:hover { border-color: var(--amber-border); color: var(--text); }
+.stackPicker:focus { border-color: var(--amber-border); }
+
+/* ── Page header ──────────────────────────────────────────────── */
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  margin-bottom: 0.2rem;
+}
+
+.count {
+  font-size: 0.82rem;
+  color: var(--text-3);
+}
+
+/* ── Search ───────────────────────────────────────────────────── */
+.searchRow { margin-bottom: 1rem; }
+
+.searchInput {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 150ms;
+  appearance: none;
+}
+.searchInput::placeholder { color: var(--text-3); }
+.searchInput:focus { border-color: var(--border-strong); }
+
+/* ── Filters ──────────────────────────────────────────────────── */
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  background: transparent;
+  cursor: pointer;
+  transition: all 120ms var(--ease);
+  letter-spacing: 0.02em;
+}
+.chip:hover { border-color: var(--border-strong); color: var(--text); }
+.chipActive {
+  background: var(--amber-dim);
+  border-color: var(--amber-border);
+  color: var(--amber);
+}
+
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dateInput {
+  padding: 0.45rem 0.65rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 120ms;
+  color-scheme: light;
+}
+.dateInput:focus { border-color: var(--border-strong); }
+
+.dateSep { color: var(--text-3); font-size: 0.8rem; flex-shrink: 0; }
+
+.clearBtn {
+  font-size: 0.78rem;
+  color: var(--text-3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--r-sm);
+  transition: color 120ms;
+}
+.clearBtn:hover { color: var(--text-2); }
+
+/* ── Result list ──────────────────────────────────────────────── */
+.list {
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.noteRow {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  transition: background 100ms;
+}
+.noteRow:last-child { border-bottom: none; }
+.noteRow:hover { background: var(--surface); }
+
+.noteMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.4rem;
+}
+
+.noteProduct {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.noteDate {
+  font-size: 0.75rem;
+  color: var(--text-3);
+  margin-left: auto;
+}
+
+.noteDesc {
+  font-size: 0.86rem;
+  color: var(--text-2);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Skeleton ─────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+.skeleton {
+  height: 72px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+.skeleton:last-child { border-bottom: none; }
+
+/* ── Empty / error ────────────────────────────────────────────── */
+.empty {
+  padding: 4rem 1.25rem;
+  text-align: center;
+  color: var(--text-2);
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+
+.error {
+  padding: 0.75rem 1rem;
+  background: var(--red-dim);
+  border: 1px solid rgba(255,69,58,0.2);
+  border-radius: var(--r-sm);
+  color: var(--red);
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+/* ── Pagination ───────────────────────────────────────────────── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.pageBtn {
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.45rem 1rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 120ms;
+}
+.pageBtn:hover:not(:disabled) { color: var(--text); border-color: var(--border-strong); }
+.pageBtn:disabled { opacity: 0.35; cursor: default; }
+
+.pageInfo {
+  font-size: 0.82rem;
+  color: var(--text-3);
+}
+
+/* ── Bookmarks ────────────────────────────────────────────────── */
+.bookmarksToggleBtn {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 120ms var(--ease);
+}
+
+.bookmarksToggleBtn:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.bookmarksActive {
+  background: var(--blue-dim);
+  border-color: var(--blue-border);
+  color: var(--blue);
+}
+
+.bookmarkBtn {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-3);
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--r-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all 120ms;
+  cursor: pointer;
+}
+
+.bookmarkBtn:hover {
+  color: var(--text-2);
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+
+.bookmarked {
+  color: var(--blue);
+  font-weight: 600;
+}
+.bookmarked:hover {
+  color: var(--blue);
+  background: var(--blue-dim);
+  border-color: var(--blue-border);
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .filterRow { gap: 0.4rem; }
+  .noteDate  { margin-left: 0; }
+  .bookmarkBtn { margin-left: auto; }
+}
+
