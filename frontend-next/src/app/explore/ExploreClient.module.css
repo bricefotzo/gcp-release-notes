@@ -766,3 +766,106 @@
   .bookmarkBtn { margin-left: auto; }
 }
 
+.shareBtn {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-3);
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--r-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all 120ms;
+  cursor: pointer;
+}
+
+.shareBtn:hover {
+  color: var(--text-2);
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+
+.shareSelected {
+  color: var(--amber);
+  font-weight: 600;
+}
+.shareSelected:hover {
+  color: var(--amber);
+  background: var(--amber-dim);
+  border-color: var(--amber-border);
+}
+
+.floatingActionBar {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 2.5rem);
+  max-width: 580px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  z-index: 999;
+  padding: 0.75rem 1.25rem;
+  animation: slideUp 200ms var(--ease);
+}
+
+@keyframes slideUp {
+  from { transform: translate(-50%, 1rem); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+.floatingActionBarInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.floatingActionBarInner span {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.floatingActionBarBtns {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.clearSelectionBtn {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-3);
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: all 120ms;
+}
+.clearSelectionBtn:hover {
+  color: var(--text-2);
+  border-color: var(--border-strong);
+}
+
+.floatingShareBtn {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--surface);
+  background: var(--text);
+  border: none;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 120ms;
+}
+.floatingShareBtn:hover {
+  opacity: 0.9;
+}
+
+

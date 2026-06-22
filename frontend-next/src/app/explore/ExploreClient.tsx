@@ -99,6 +99,9 @@ export default function ExploreClient() {
   const [shareError,     setShareError]     = useState("");
   const [shareCopied,    setShareCopied]    = useState(false);
 
+  // Share Selection
+  const [shareSelection, setShareSelection] = useState<ReleaseNote[]>([]);
+
   useEffect(() => {
     setStack(loadStack());
     setBookmarks(loadBookmarks());
@@ -143,6 +146,31 @@ export default function ExploreClient() {
     b.product_name === note.product_name && 
     b.published_at === note.published_at && 
     b.description === note.description
+  );
+
+  function toggleShareSelection(note: ReleaseNote) {
+    const isSelected = shareSelection.some(n => 
+      n.product_name === note.product_name && 
+      n.published_at === note.published_at && 
+      n.description === note.description
+    );
+    let next;
+    if (isSelected) {
+      next = shareSelection.filter(n => 
+        !(n.product_name === note.product_name && 
+          n.published_at === note.published_at && 
+          n.description === note.description)
+      );
+    } else {
+      next = [...shareSelection, note];
+    }
+    setShareSelection(next);
+  }
+
+  const isShareSelected = (note: ReleaseNote) => shareSelection.some(n => 
+    n.product_name === note.product_name && 
+    n.published_at === note.published_at && 
+    n.description === note.description
   );
 
   // Load filter options once
@@ -367,11 +395,11 @@ Provide ONLY the final generated social post text. No introductory remarks like 
             <BookmarkIcon active={showBookmarks} />
             {showBookmarks ? "Show all release notes" : "Saved notes"}
           </button>
-          {bookmarks.length > 0 && (
+          {shareSelection.length > 0 && (
             <button
               className={styles.shareToggleBtn}
               onClick={() => {
-                setShareNotes([...bookmarks]);
+                setShareNotes([...shareSelection]);
                 setShareModalOpen(true);
                 setShareGenerated("");
                 setShareError("");
@@ -380,7 +408,7 @@ Provide ONLY the final generated social post text. No introductory remarks like 
               style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
             >
               <ShareIcon />
-              Share updates ({bookmarks.length})
+              Share selection ({shareSelection.length})
             </button>
           )}
         </div>
@@ -451,6 +479,8 @@ Provide ONLY the final generated social post text. No introductory remarks like 
               note={note} 
               isBookmarked={isBookmarked(note)}
               onToggleBookmark={() => toggleBookmark(note)}
+              isShareSelected={isShareSelected(note)}
+              onToggleShare={() => toggleShareSelection(note)}
             />
           ))}
         </ul>
@@ -478,19 +508,19 @@ Provide ONLY the final generated social post text. No introductory remarks like 
                 <h2 style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
                   <ShareIcon /> Share updates
                 </h2>
-                <p className={styles.modalSubtitle}>Format and publish your saved release updates.</p>
+                <p className={styles.modalSubtitle}>Format and publish your selected release updates.</p>
               </div>
               <button className={styles.modalClose} onClick={() => setShareModalOpen(false)}>×</button>
             </div>
 
             <div className={styles.modalBody}>
-              {/* Left Side: Bookmarked Notes list with checkboxes to toggle share status */}
+              {/* Left Side: Selected Notes list with checkboxes to toggle share status */}
               <div className={styles.modalLeft}>
                 <div className={styles.modalSectionTitle}>
                   <span>Select Updates ({shareNotes.length})</span>
                 </div>
                 <ul className={styles.modalNotesList}>
-                  {bookmarks.map((note, index) => {
+                  {shareSelection.map((note, index) => {
                     const isSelected = shareNotes.some(n => 
                       n.product_name === note.product_name && 
                       n.published_at === note.published_at && 
@@ -624,6 +654,32 @@ Provide ONLY the final generated social post text. No introductory remarks like 
           </div>
         </div>
       )}
+
+      {/* Floating Action Bar for sharing */}
+      {shareSelection.length > 0 && (
+        <div className={styles.floatingActionBar}>
+          <div className={styles.floatingActionBarInner}>
+            <span>{shareSelection.length} {shareSelection.length === 1 ? "note" : "notes"} selected for sharing</span>
+            <div className={styles.floatingActionBarBtns}>
+              <button className={styles.clearSelectionBtn} onClick={() => setShareSelection([])}>
+                Clear
+              </button>
+              <button 
+                className={styles.floatingShareBtn} 
+                onClick={() => {
+                  setShareNotes([...shareSelection]);
+                  setShareModalOpen(true);
+                  setShareGenerated("");
+                  setShareError("");
+                  setShareInstruct("");
+                }}
+              >
+                <ShareIcon /> Share selected
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -632,11 +688,15 @@ Provide ONLY the final generated social post text. No introductory remarks like 
 function NoteRow({ 
   note, 
   isBookmarked, 
-  onToggleBookmark 
+  onToggleBookmark,
+  isShareSelected,
+  onToggleShare
 }: { 
   note: ReleaseNote; 
   isBookmarked: boolean; 
-  onToggleBookmark: () => void; 
+  onToggleBookmark: () => void;
+  isShareSelected: boolean;
+  onToggleShare: () => void;
 }) {
   return (
     <li className={styles.noteRow}>
@@ -657,6 +717,19 @@ function NoteRow({
         >
           <BookmarkIcon active={isBookmarked} />
           {isBookmarked ? "Saved" : "Save note"}
+        </button>
+
+        <button 
+          className={`${styles.shareBtn} ${isShareSelected ? styles.shareSelected : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleShare();
+          }}
+          style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}
+          aria-label={isShareSelected ? "Remove from share selection" : "Select to share"}
+        >
+          <ShareIcon />
+          {isShareSelected ? "Selected to share" : "Share"}
         </button>
       </div>
       <div 
