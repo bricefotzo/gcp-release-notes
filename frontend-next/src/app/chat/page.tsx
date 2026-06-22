@@ -8,6 +8,22 @@ type Mode = "chat" | "sql";
 
 const ALL_TYPES = ["FEATURE", "FIX", "BREAKING_CHANGE", "DEPRECATION", "ISSUE", "ANNOUNCEMENT"];
 
+const ExplainIcon = () => (
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "text-bottom", marginRight: "6px" }}>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+    <line x1="12" y1="17" x2="12.01" y2="17" />
+  </svg>
+);
+
+const SqlIcon = () => (
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "text-bottom", marginRight: "6px" }}>
+    <ellipse cx="12" cy="5" rx="9" ry="3" />
+    <path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+    <path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6" />
+  </svg>
+);
+
 type Message = {
   id: string;
   sender: "user" | "ai";
@@ -151,13 +167,13 @@ export default function ChatPage() {
           className={`${styles.tab} ${mode === "chat" ? styles.activeTab : ""}`}
           onClick={() => { setMode("chat"); setError(""); }}
         >
-          💡 Explain Notes
+          <ExplainIcon /> Explain Notes
         </button>
         <button
           className={`${styles.tab} ${mode === "sql" ? styles.activeTab : ""}`}
           onClick={() => { setMode("sql"); setError(""); }}
         >
-          ⚙ BigQuery SQL Query
+          <SqlIcon /> BigQuery SQL Query
         </button>
       </div>
 
@@ -166,7 +182,21 @@ export default function ChatPage() {
         <div className={styles.chatSection}>
           {messages.length === 0 ? (
             <div className={styles.welcome}>
-              <div className={styles.welcomeIcon}>{mode === "chat" ? "💡" : "⚙"}</div>
+              <div className={styles.welcomeIcon}>
+                {mode === "chat" ? (
+                  <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block" }}>
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block" }}>
+                    <ellipse cx="12" cy="5" rx="9" ry="3" />
+                    <path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                    <path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6" />
+                  </svg>
+                )}
+              </div>
               <h2>{mode === "chat" ? "Summarize & Explain" : "Natural Language to SQL"}</h2>
               <p>
                 {mode === "chat"

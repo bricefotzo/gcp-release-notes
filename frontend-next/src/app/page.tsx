@@ -7,11 +7,33 @@ import styles from "./page.module.css";
 
 type Status = "loading" | "ok" | "error";
 
+const ExploreIcon = () => (
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "block" }}>
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+);
+
+const MorningPaperIcon = () => (
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "block" }}>
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+    <line x1="16" y1="8" x2="18" y2="8" />
+    <line x1="16" y1="12" x2="18" y2="12" />
+    <line x1="16" y1="16" x2="18" y2="16" />
+    <rect x="6" y="8" width="6" height="8" />
+  </svg>
+);
+
+const AskAIIcon = () => (
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "block" }}>
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </svg>
+);
+
 const FEATURES = [
-  { href: "/explore",       icon: "↓", title: "Explore",       desc: "Search and filter release notes across every GCP product and note type." },
-  { href: "/morning-paper", icon: "☀", title: "Morning paper", desc: "A daily briefing on what changed in your stack — readable in 2 minutes." },
-  { href: "/chat",          icon: "◌", title: "Ask AI",        desc: "Chat with the release notes. Ask anything, get grounded answers." },
-  { href: "/share",         icon: "↗", title: "Share",         desc: "One click to generate a LinkedIn or X post and open the app to post it." },
+  { href: "/explore",       icon: <ExploreIcon />,       title: "Explore",       desc: "Search and filter release notes across every GCP product and note type." },
+  { href: "/morning-paper", icon: <MorningPaperIcon />, title: "Morning paper", desc: "A daily briefing on what changed in your stack — readable in 2 minutes." },
+  { href: "/chat",          icon: <AskAIIcon />,          title: "Ask AI",        desc: "Chat with the release notes. Ask anything, get grounded answers." },
 ];
 
 export default function Home() {

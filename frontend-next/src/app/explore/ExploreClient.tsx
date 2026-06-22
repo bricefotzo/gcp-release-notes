@@ -10,6 +10,38 @@ import styles from "./ExploreClient.module.css";
 const PAGE_SIZE = 20;
 const ALL_TYPES = ["FEATURE", "FIX", "BREAKING_CHANGE", "DEPRECATION", "ISSUE", "ANNOUNCEMENT"];
 
+// ── SVG Icons ──────────────────────────────────────────────────
+const BookmarkIcon = ({ active }: { active?: boolean }) => (
+  <svg viewBox="0 0 24 24" width="14" height="14" fill={active ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "middle" }}>
+    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+  </svg>
+);
+
+const ShareIcon = () => (
+  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "middle" }}>
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" />
+  </svg>
+);
+
+const LinkedInIcon = () => (
+  <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style={{ display: "inline-block", verticalAlign: "middle" }}>
+    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+  </svg>
+);
+
+const XIcon = () => (
+  <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style={{ display: "inline-block", verticalAlign: "middle" }}>
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+  </svg>
+);
+
+const EmailIcon = () => (
+  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "middle" }}>
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+    <polyline points="22,6 12,13 2,6" />
+  </svg>
+);
+
 // ── Stack helpers (persisted to localStorage) ──────────────────
 function loadStack(): string[] {
   try { return JSON.parse(localStorage.getItem("stack") ?? "[]"); }
@@ -330,8 +362,10 @@ Provide ONLY the final generated social post text. No introductory remarks like 
           <button
             className={`${styles.bookmarksToggleBtn} ${showBookmarks ? styles.bookmarksActive : ""}`}
             onClick={() => setShowBookmarks(!showBookmarks)}
+            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
           >
-            {showBookmarks ? "Show all release notes" : "🔖 View saved notes"}
+            <BookmarkIcon active={showBookmarks} />
+            {showBookmarks ? "Show all release notes" : "Saved notes"}
           </button>
           {bookmarks.length > 0 && (
             <button
@@ -343,8 +377,10 @@ Provide ONLY the final generated social post text. No introductory remarks like 
                 setShareError("");
                 setShareInstruct("");
               }}
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
             >
-              📤 Share updates ({bookmarks.length})
+              <ShareIcon />
+              Share updates ({bookmarks.length})
             </button>
           )}
         </div>
@@ -439,7 +475,9 @@ Provide ONLY the final generated social post text. No introductory remarks like 
           <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <div>
-                <h2>📤 Share updates</h2>
+                <h2 style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                  <ShareIcon /> Share updates
+                </h2>
                 <p className={styles.modalSubtitle}>Format and publish your saved release updates.</p>
               </div>
               <button className={styles.modalClose} onClick={() => setShareModalOpen(false)}>×</button>
@@ -498,20 +536,23 @@ Provide ONLY the final generated social post text. No introductory remarks like 
                     <button 
                       className={`${styles.platformBtn} ${sharePlatform === "linkedin" ? styles.platformActive : ""}`}
                       onClick={() => setSharePlatform("linkedin")}
+                      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
                     >
-                      💼 LinkedIn
+                      <LinkedInIcon /> LinkedIn
                     </button>
                     <button 
                       className={`${styles.platformBtn} ${sharePlatform === "x" ? styles.platformActive : ""}`}
                       onClick={() => setSharePlatform("x")}
+                      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
                     >
-                      🐦 X (Twitter)
+                      <XIcon /> X (Twitter)
                     </button>
                     <button 
                       className={`${styles.platformBtn} ${sharePlatform === "email" ? styles.platformActive : ""}`}
                       onClick={() => setSharePlatform("email")}
+                      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
                     >
-                      ✉ Email
+                      <EmailIcon /> Email
                     </button>
                   </div>
                 </div>
@@ -520,10 +561,10 @@ Provide ONLY the final generated social post text. No introductory remarks like 
                   <label className={styles.fieldLabel}>Tone of voice</label>
                   <div className={styles.toneSelector}>
                     {[
-                      { id: "professional", label: "💼 Prof" },
-                      { id: "technical", label: "💻 Tech" },
-                      { id: "hype", label: "🚀 Hype" },
-                      { id: "concise", label: "⚡ Fast" }
+                      { id: "professional", label: "Professional" },
+                      { id: "technical", label: "Technical" },
+                      { id: "hype", label: "Engaging" },
+                      { id: "concise", label: "Concise" }
                     ].map(t => (
                       <button
                         key={t.id}
@@ -552,7 +593,7 @@ Provide ONLY the final generated social post text. No introductory remarks like 
                   onClick={generateSharePost}
                   disabled={shareLoading || shareNotes.length === 0}
                 >
-                  {shareLoading ? "Generating..." : "✨ Generate Social Post"}
+                  {shareLoading ? "Generating..." : "Generate Social Post"}
                 </button>
 
                 {shareError && <p className={styles.modalError}>{shareError}</p>}
@@ -563,10 +604,10 @@ Provide ONLY the final generated social post text. No introductory remarks like 
                       <span>Generated Draft</span>
                       <div className={styles.draftActions}>
                         <button className={styles.copyBtn} onClick={handleShareCopy}>
-                          {shareCopied ? "✓ Copied" : "Copy"}
+                          {shareCopied ? "Copied!" : "Copy"}
                         </button>
                         <button className={styles.postBtn} onClick={handleSharePostDirect}>
-                          {sharePlatform === "x" ? "Post to X ↗" : sharePlatform === "linkedin" ? "LinkedIn ↗" : "Email ↗"}
+                          {sharePlatform === "x" ? "Post to X" : sharePlatform === "linkedin" ? "LinkedIn" : "Email"}
                         </button>
                       </div>
                     </div>
@@ -611,9 +652,11 @@ function NoteRow({
             e.stopPropagation();
             onToggleBookmark();
           }}
+          style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}
           aria-label={isBookmarked ? "Remove bookmark" : "Bookmark note"}
         >
-          {isBookmarked ? "🔖 Saved" : "bookmark"}
+          <BookmarkIcon active={isBookmarked} />
+          {isBookmarked ? "Saved" : "Save note"}
         </button>
       </div>
       <div 
