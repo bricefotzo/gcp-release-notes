@@ -276,8 +276,9 @@ export default function ExploreClient() {
       `Note ${i + 1}: [${n.release_note_type}] ${n.product_name} (${formatDate(n.published_at)})\n${stripHtml(n.description)}`
     ).join("\n\n");
 
-    const prompt = `Write a ${sharePlatform === "x" ? "Twitter/X post (or thread if long)" : sharePlatform === "linkedin" ? "LinkedIn post" : "short email summary newsletter"} about these release updates.
-Use a ${shareTone} tone. Keep it highly readable, clean, use bullet points, and add relevant emojis but don't overdo them. ${shareInstruct ? `Additional instructions: ${shareInstruct}` : ""}
+    const prompt = `Write a ${sharePlatform === "x" ? "Twitter/X post" : sharePlatform === "linkedin" ? "LinkedIn post" : "short email summary newsletter"} about these release updates.
+Use a ${shareTone} tone. Keep it highly readable and clean. ${sharePlatform === "x" ? "The output MUST be strictly under 280 characters in total (absolute limit)." : "Use bullet points."}
+Do NOT use any emojis in the generated text. ${shareInstruct ? `Additional instructions: ${shareInstruct}` : ""}
 Here are the release notes to summarize:
 ${notesStr}
 
@@ -631,7 +632,14 @@ Provide ONLY the final generated social post text. No introductory remarks like 
                 {shareGenerated && (
                   <div className={styles.draftSection}>
                     <div className={styles.draftHeader}>
-                      <span>Generated Draft</span>
+                      <span>
+                        Generated Draft
+                        {sharePlatform === "x" && (
+                          <span style={{ marginLeft: "8px", fontWeight: "normal", color: shareGenerated.length > 280 ? "#dc2626" : "var(--text-3)" }}>
+                            ({shareGenerated.length}/280)
+                          </span>
+                        )}
+                      </span>
                       <div className={styles.draftActions}>
                         <button className={styles.copyBtn} onClick={handleShareCopy}>
                           {shareCopied ? "Copied!" : "Copy"}

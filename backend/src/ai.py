@@ -8,19 +8,32 @@ from openai import OpenAI
 
 _TAG_RE = re.compile(r"<[^>]+>")
 
-# Injected automatically by Docker Compose when using the `models:` key.
-# Falls back to the standard Docker Model Runner host for local testing.
-LLM_URL = os.environ.get("LLM_URL")
-LLM_MODEL = os.environ.get("LLM_MODEL")  # Default model if not specified
+# LLM Provider switch: "local" (default) or "gemini"
+LLM_PROVIDER = os.environ.get("LLM_PROVIDER", "local")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
-LLM_ENDPOINT = f"{LLM_URL}/v1" if LLM_URL and LLM_URL.endswith("run.app") else f"{LLM_URL}"
-LLM_MODEL = "ai/gemma4:E4B" if LLM_URL and LLM_URL.endswith("run.app") else (LLM_MODEL or "ai/llama3.2")
-print(f"LLM_URL: {LLM_URL}, LLM_MODEL: {LLM_MODEL}")
-client = OpenAI(
-    base_url=LLM_ENDPOINT,
-    api_key="not-needed",  # DMR doesn't resquire an API key
-    timeout=7200
-)
+if LLM_PROVIDER == "gemini":
+    LLM_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/openai/"
+    LLM_MODEL = os.environ.get("GEMINI_MODEL") or os.environ.get("LLM_MODEL") or "gemini-1.5-flash"
+    client = OpenAI(
+        base_url=LLM_ENDPOINT,
+        api_key=GEMINI_API_KEY or "mock-key",
+        timeout=30.0
+    )
+else:
+    # Injected automatically by Docker Compose when using the `models:` key.
+    # Falls back to the standard Docker Model Runner host for local testing.
+    LLM_URL = os.environ.get("LLM_URL")
+    LLM_MODEL_ENV = os.environ.get("LLM_MODEL")
+    LLM_ENDPOINT = f"{LLM_URL}/v1" if LLM_URL and LLM_URL.endswith("run.app") else f"{LLM_URL}"
+    LLM_MODEL = "ai/gemma4:E4B" if LLM_URL and LLM_URL.endswith("run.app") else (LLM_MODEL_ENV or "ai/llama3.2")
+    client = OpenAI(
+        base_url=LLM_ENDPOINT,
+        api_key="not-needed",  # DMR doesn't require an API key
+        timeout=7200
+    )
+
+print(f"Using LLM Provider: {LLM_PROVIDER}, Endpoint: {LLM_ENDPOINT}, Model: {LLM_MODEL}")
 
 
 
