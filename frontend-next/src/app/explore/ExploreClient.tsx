@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Badge from "@/components/Badge";
-import { getReleaseNotes, getFilterOptions, type ReleaseNote, type FilterOptions } from "@/lib/api";
+import { getReleaseNotes, getFilterOptions, postAIChat, type ReleaseNote, type FilterOptions } from "@/lib/api";
 import { stripHtml, formatDate } from "@/lib/utils";
 import styles from "./ExploreClient.module.css";
 
@@ -55,6 +55,17 @@ export default function ExploreClient() {
   // Bookmarks
   const [bookmarks,     setBookmarks]     = useState<ReleaseNote[]>([]);
   const [showBookmarks, setShowBookmarks] = useState(false);
+
+  // Share modal states
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareNotes,     setShareNotes]     = useState<ReleaseNote[]>([]);
+  const [sharePlatform,  setSharePlatform]  = useState<"linkedin" | "x" | "email">("linkedin");
+  const [shareTone,      setShareTone]      = useState<"professional" | "technical" | "hype" | "concise">("professional");
+  const [shareInstruct,  setShareInstruct]  = useState("");
+  const [shareGenerated, setShareGenerated] = useState("");
+  const [shareLoading,   setShareLoading]   = useState(false);
+  const [shareError,     setShareError]     = useState("");
+  const [shareCopied,    setShareCopied]    = useState(false);
 
   useEffect(() => {
     setStack(loadStack());
@@ -192,6 +203,59 @@ export default function ExploreClient() {
   // Products not yet in stack (for picker)
   const availableProducts = filterOpts?.products.filter(p => !stack.includes(p)) ?? [];
 
+  async function generateSharePost() {
+    if (shareNotes.length === 0) {
+      setShareError("Please select at least one release note.");
+      return;
+    }
+    setShareLoading(true);
+    setShareError("");
+    setShareCopied(false);
+
+    const notesStr = shareNotes.map((n, i) => 
+      `Note ${i + 1}: [${n.release_note_type}] ${n.product_name} (${formatDate(n.published_at)})\n${stripHtml(n.description)}`
+    ).join("\n\n");
+
+    const prompt = `Write a ${sharePlatform === "x" ? "Twitter/X post (or thread if long)" : sharePlatform === "linkedin" ? "LinkedIn post" : "short email summary newsletter"} about these release updates.
+Use a ${shareTone} tone. Keep it highly readable, clean, use bullet points, and add relevant emojis but don't overdo them. ${shareInstruct ? `Additional instructions: ${shareInstruct}` : ""}
+Here are the release notes to summarize:
+${notesStr}
+
+Provide ONLY the final generated social post text. No introductory remarks like "Here is your post:".`;
+
+    try {
+      const res = await postAIChat({
+        question: prompt,
+        products: shareNotes.map(n => n.product_name),
+      });
+      setShareGenerated(res.answer);
+    } catch (err: any) {
+      setShareError(err?.message || "Failed to generate post. Make sure the backend is running.");
+    } finally {
+      setShareLoading(false);
+    }
+  }
+
+  function handleShareCopy() {
+    navigator.clipboard.writeText(shareGenerated);
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2000);
+  }
+
+  function handleSharePostDirect() {
+    if (!shareGenerated) return;
+    if (sharePlatform === "x") {
+      const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareGenerated)}`;
+      window.open(url, "_blank", "noopener,noreferrer");
+    } else if (sharePlatform === "linkedin") {
+      window.open("https://www.linkedin.com/sharing/share-offsite/", "_blank", "noopener,noreferrer");
+    } else if (sharePlatform === "email") {
+      const subject = encodeURIComponent("Cloud News & Updates Summary");
+      const url = `mailto:?subject=${subject}&body=${encodeURIComponent(shareGenerated)}`;
+      window.open(url, "_self");
+    }
+  }
+
   return (
     <div className={styles.page}>
 
@@ -262,12 +326,28 @@ export default function ExploreClient() {
             )
           )}
         </div>
-        <button
-          className={`${styles.bookmarksToggleBtn} ${showBookmarks ? styles.bookmarksActive : ""}`}
-          onClick={() => setShowBookmarks(!showBookmarks)}
-        >
-          {showBookmarks ? "Show all release notes" : "🔖 View saved notes"}
-        </button>
+        <div className={styles.headerActions}>
+          <button
+            className={`${styles.bookmarksToggleBtn} ${showBookmarks ? styles.bookmarksActive : ""}`}
+            onClick={() => setShowBookmarks(!showBookmarks)}
+          >
+            {showBookmarks ? "Show all release notes" : "🔖 View saved notes"}
+          </button>
+          {bookmarks.length > 0 && (
+            <button
+              className={styles.shareToggleBtn}
+              onClick={() => {
+                setShareNotes([...bookmarks]);
+                setShareModalOpen(true);
+                setShareGenerated("");
+                setShareError("");
+                setShareInstruct("");
+              }}
+            >
+              📤 Share updates ({bookmarks.length})
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── Search ──────────────────────────────────────────────── */}
@@ -350,6 +430,157 @@ export default function ExploreClient() {
           <button className={styles.pageBtn} onClick={() => fetchNotes(page + 1)} disabled={page >= totalPages}>
             Next →
           </button>
+        </div>
+      )}
+
+      {/* ── Share Modal ────────────────────────────────────────── */}
+      {shareModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setShareModalOpen(false)}>
+          <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <div>
+                <h2>📤 Share updates</h2>
+                <p className={styles.modalSubtitle}>Format and publish your saved release updates.</p>
+              </div>
+              <button className={styles.modalClose} onClick={() => setShareModalOpen(false)}>×</button>
+            </div>
+
+            <div className={styles.modalBody}>
+              {/* Left Side: Bookmarked Notes list with checkboxes to toggle share status */}
+              <div className={styles.modalLeft}>
+                <div className={styles.modalSectionTitle}>
+                  <span>Select Updates ({shareNotes.length})</span>
+                </div>
+                <ul className={styles.modalNotesList}>
+                  {bookmarks.map((note, index) => {
+                    const isSelected = shareNotes.some(n => 
+                      n.product_name === note.product_name && 
+                      n.published_at === note.published_at && 
+                      n.description === note.description
+                    );
+                    return (
+                      <li 
+                        key={index}
+                        className={`${styles.modalNoteItem} ${isSelected ? styles.modalNoteSelected : ""}`}
+                        onClick={() => {
+                          if (isSelected) {
+                            setShareNotes(prev => prev.filter(n => 
+                              !(n.product_name === note.product_name && 
+                                n.published_at === note.published_at && 
+                                n.description === note.description)
+                            ));
+                          } else {
+                            setShareNotes(prev => [...prev, note]);
+                          }
+                        }}
+                      >
+                        <input 
+                          type="checkbox" 
+                          checked={isSelected}
+                          onChange={() => {}}
+                          className={styles.modalCheckbox}
+                        />
+                        <div className={styles.modalNoteMeta}>
+                          <span className={styles.modalProduct}>{note.product_name}</span>
+                          <span className={styles.modalDate}>{formatDate(note.published_at)}</span>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+
+              {/* Right Side: Options & Results */}
+              <div className={styles.modalRight}>
+                <div className={styles.formGroup}>
+                  <label className={styles.fieldLabel}>Platform Format</label>
+                  <div className={styles.platformSelector}>
+                    <button 
+                      className={`${styles.platformBtn} ${sharePlatform === "linkedin" ? styles.platformActive : ""}`}
+                      onClick={() => setSharePlatform("linkedin")}
+                    >
+                      💼 LinkedIn
+                    </button>
+                    <button 
+                      className={`${styles.platformBtn} ${sharePlatform === "x" ? styles.platformActive : ""}`}
+                      onClick={() => setSharePlatform("x")}
+                    >
+                      🐦 X (Twitter)
+                    </button>
+                    <button 
+                      className={`${styles.platformBtn} ${sharePlatform === "email" ? styles.platformActive : ""}`}
+                      onClick={() => setSharePlatform("email")}
+                    >
+                      ✉ Email
+                    </button>
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.fieldLabel}>Tone of voice</label>
+                  <div className={styles.toneSelector}>
+                    {[
+                      { id: "professional", label: "💼 Prof" },
+                      { id: "technical", label: "💻 Tech" },
+                      { id: "hype", label: "🚀 Hype" },
+                      { id: "concise", label: "⚡ Fast" }
+                    ].map(t => (
+                      <button
+                        key={t.id}
+                        className={`${styles.toneChip} ${shareTone === t.id ? styles.toneChipActive : ""}`}
+                        onClick={() => setShareTone(t.id as any)}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.fieldLabel}>Custom Prompt (Optional)</label>
+                  <input
+                    type="text"
+                    className={styles.modalInput}
+                    placeholder="e.g. emphasize developer tools, add hashtags..."
+                    value={shareInstruct}
+                    onChange={e => setShareInstruct(e.target.value)}
+                  />
+                </div>
+
+                <button 
+                  className={styles.modalGenerateBtn}
+                  onClick={generateSharePost}
+                  disabled={shareLoading || shareNotes.length === 0}
+                >
+                  {shareLoading ? "Generating..." : "✨ Generate Social Post"}
+                </button>
+
+                {shareError && <p className={styles.modalError}>{shareError}</p>}
+
+                {shareGenerated && (
+                  <div className={styles.draftSection}>
+                    <div className={styles.draftHeader}>
+                      <span>Generated Draft</span>
+                      <div className={styles.draftActions}>
+                        <button className={styles.copyBtn} onClick={handleShareCopy}>
+                          {shareCopied ? "✓ Copied" : "Copy"}
+                        </button>
+                        <button className={styles.postBtn} onClick={handleSharePostDirect}>
+                          {sharePlatform === "x" ? "Post to X ↗" : sharePlatform === "linkedin" ? "LinkedIn ↗" : "Email ↗"}
+                        </button>
+                      </div>
+                    </div>
+                    <textarea
+                      className={styles.draftTextArea}
+                      value={shareGenerated}
+                      onChange={e => setShareGenerated(e.target.value)}
+                      rows={6}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

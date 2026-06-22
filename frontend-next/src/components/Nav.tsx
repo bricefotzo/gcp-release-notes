@@ -9,7 +9,6 @@ const LINKS = [
   { href: "/explore",       label: "Explore" },
   { href: "/morning-paper", label: "Morning paper" },
   { href: "/chat",          label: "Ask AI" },
-  { href: "/share",         label: "Share" },
 ];
 
 export default function Nav() {
