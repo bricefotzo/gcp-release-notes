@@ -234,10 +234,28 @@ gcp-release-notes/
 │   ├── .env                 # Local environment variables (not committed)
 │   ├── Dockerfile
 │   └── requirements.txt
+├── ingestion/
+│   ├── main.py               # Entrypoint for the Cloud Run Job
+│   ├── src/sources/          # bigquery_source.py, rss_source.py
+│   ├── src/loader.py         # Create-if-needed table + idempotent MERGE load
+│   ├── README.md             # Full deployment guide (Cloud Run Jobs + Cloud Scheduler)
+│   ├── Dockerfile
+│   └── requirements.txt
 ├── compose.yaml             # Base Compose config (used for production and local)
 ├── compose.override.yaml    # Dev overrides: watch mode + ADC credential mount
 └── .github/workflows/       # CI/CD pipeline
 ```
+
+---
+
+## Data Ingestion
+
+A separate Cloud Run Job (`ingestion/`) syncs release notes into a
+BigQuery table in your own project on a daily schedule, so the app can
+optionally run against owned data instead of querying the public dataset
+live. See [`ingestion/README.md`](ingestion/README.md) for the full
+`gcloud` deployment guide — it deploys and schedules independently of the
+frontend/backend services above.
 
 ---
 
