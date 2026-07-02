@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 _SCHEMA = [
     bigquery.SchemaField("row_hash", "STRING", mode="REQUIRED"),
+    bigquery.SchemaField("platform", "STRING", mode="REQUIRED"),
     bigquery.SchemaField("description", "STRING"),
     bigquery.SchemaField("release_note_type", "STRING"),
     bigquery.SchemaField("published_at", "DATE"),
@@ -41,39 +42,47 @@ def ensure_dataset_and_table(client: bigquery.Client) -> None:
     except NotFound:
         table = bigquery.Table(table_ref, schema=_SCHEMA)
         table.time_partitioning = bigquery.TimePartitioning(field="published_at")
-        table.clustering_fields = ["product_name", "release_note_type"]
+        table.clustering_fields = ["platform", "product_name", "release_note_type"]
         client.create_table(table)
         logger.info("Created table %s", config.dest_table_fqn())
 
 
-def get_watermark(client: bigquery.Client) -> dt.date | None:
-    """Return MAX(published_at) currently in the destination table, or None if empty."""
-    query = f"SELECT MAX(published_at) AS max_date FROM `{config.dest_table_fqn()}`"
-    rows = list(client.query(query).result())
+def get_watermark(client: bigquery.Client, platform: str) -> dt.date | None:
+    """Return MAX(published_at) for `platform` in the destination table, or None if it has no rows yet."""
+    query = f"""
+    SELECT MAX(published_at) AS max_date
+    FROM `{config.dest_table_fqn()}`
+    WHERE platform = @platform
+    """
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[bigquery.ScalarQueryParameter("platform", "STRING", platform)]
+    )
+    rows = list(client.query(query, job_config=job_config).result())
     return rows[0]["max_date"] if rows else None
 
 
 def _row_hash(row: pd.Series) -> str:
     key = "|".join(
         str(row.get(field, ""))
-        for field in ("product_name", "release_note_type", "published_at", "description")
+        for field in ("platform", "product_name", "release_note_type", "published_at", "description")
     )
     return hashlib.sha256(key.encode("utf-8")).hexdigest()
 
 
-def merge_new_rows(client: bigquery.Client, df: pd.DataFrame, source: str) -> int:
+def merge_new_rows(client: bigquery.Client, df: pd.DataFrame, platform: str, source: str) -> int:
     """Load `df` into a staging table, then MERGE new rows into the destination.
 
-    Dedup key is a content hash (product_name + type + published_at +
-    description), not an identity from the source, since neither the
-    public BigQuery table nor the RSS feed expose a stable row id. This
-    makes re-running the job over an overlapping date range safe.
+    Dedup key is a content hash (platform + product_name + type +
+    published_at + description), not an identity from the source, since
+    none of the upstream sources expose a stable row id. This makes
+    re-running the job over an overlapping date range safe.
     """
     if df.empty:
         return 0
 
     df = df.copy()
     df["published_at"] = pd.to_datetime(df["published_at"]).dt.date
+    df["platform"] = platform
     df["row_hash"] = df.apply(_row_hash, axis=1)
     df["source"] = source
     df["ingested_at"] = pd.Timestamp.now(tz="UTC")
@@ -89,16 +98,17 @@ def merge_new_rows(client: bigquery.Client, df: pd.DataFrame, source: str) -> in
         USING `{staging_table_id}` S
         ON T.row_hash = S.row_hash
         WHEN NOT MATCHED THEN
-          INSERT (row_hash, description, release_note_type, published_at,
+          INSERT (row_hash, platform, description, release_note_type, published_at,
                   product_name, product_version_name, source, ingested_at)
-          VALUES (S.row_hash, S.description, S.release_note_type, S.published_at,
+          VALUES (S.row_hash, S.platform, S.description, S.release_note_type, S.published_at,
                   S.product_name, S.product_version_name, S.source, S.ingested_at)
         """
         job = client.query(merge_query)
         job.result()
         inserted = job.num_dml_affected_rows or 0
         logger.info(
-            "Merged %d new row(s) into %s (staging batch had %d candidate rows)",
+            "[%s] merged %d new row(s) into %s (staging batch had %d candidate rows)",
+            platform,
             inserted,
             config.dest_table_fqn(),
             len(df),
