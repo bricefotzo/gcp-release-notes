@@ -234,10 +234,33 @@ gcp-release-notes/
 │   ├── .env                 # Local environment variables (not committed)
 │   ├── Dockerfile
 │   └── requirements.txt
+├── ingestion/
+│   ├── main.py               # Entrypoint for the Cloud Run Job — loops over PLATFORMS
+│   ├── src/providers/        # BaseProvider interface + one module per cloud (gcp.py today)
+│   ├── src/loader.py         # Create-if-needed table + idempotent MERGE load
+│   ├── README.md             # Full deployment guide (Cloud Run Jobs + Cloud Scheduler)
+│   ├── Dockerfile
+│   └── requirements.txt
 ├── compose.yaml             # Base Compose config (used for production and local)
 ├── compose.override.yaml    # Dev overrides: watch mode + ADC credential mount
 └── .github/workflows/       # CI/CD pipeline
 ```
+
+---
+
+## Data Ingestion
+
+A separate Cloud Run Job (`ingestion/`) syncs release notes into a
+BigQuery table in your own project on a daily schedule, so the app can
+optionally run against owned data instead of querying the public dataset
+live. It's built as a provider plugin architecture (`ingestion/src/providers/`)
+so more clouds — AWS, Azure, etc. — can be added as new provider modules
+without touching the pipeline; only GCP is implemented today. Rows from
+every platform land in one shared table, discriminated by a `platform`
+column. See [`ingestion/README.md`](ingestion/README.md) for the full
+`gcloud` deployment guide and the steps to add a new platform — it
+deploys and schedules independently of the frontend/backend services
+above.
 
 ---
 
