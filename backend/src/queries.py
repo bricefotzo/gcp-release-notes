@@ -40,8 +40,12 @@ def query_release_notes(
         where_clauses.append("published_at BETWEEN ? AND ?")
         query_params.extend([start_date.isoformat(), end_date.isoformat()])
     if search_text:
-        where_clauses.append("LOWER(description) LIKE ?")
-        query_params.append(f"%{search_text.lower()}%")
+        safe = search_text.replace("'", "''")
+        where_clauses.append(
+            f"(SEARCH((description, product_name), '{safe}') "
+            f"OR CONTAINS_SUBSTR(description, '{safe}') "
+            f"OR CONTAINS_SUBSTR(product_name, '{safe}'))"
+        )
 
     where_clause = " AND ".join(where_clauses) if where_clauses else "1=1"
     formatted_where = where_clause

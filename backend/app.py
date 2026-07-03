@@ -171,7 +171,30 @@ class AIQueryRequest(BaseModel):
 def ai_health():
     """Check that the model runner is reachable and the model is loaded."""
     import requests as _req
-    from src.ai import LLM_MODEL, LLM_ENDPOINT
+    from src.ai import LLM_MODEL, LLM_ENDPOINT, LLM_PROVIDER
+    
+    if LLM_PROVIDER == "gemini":
+        from src.ai import GEMINI_API_KEY
+        headers = {"Authorization": f"Bearer {GEMINI_API_KEY}"} if GEMINI_API_KEY else {}
+        MODEL_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models"
+        print(f"Checking Gemini AI health at {MODEL_ENDPOINT}...")
+        try:
+            resp = _req.get(MODEL_ENDPOINT, headers=headers, timeout=5)
+            print(f"Gemini health response: {resp.status_code}")
+            if resp.status_code == 200:
+                models = [m["name"].split("/")[-1] for m in resp.json().get("models", [])]
+                return {"reachable": True, "model": LLM_MODEL, "ready": True, "available_models": models}
+            else:
+                return {
+                    "reachable": True,
+                    "model": LLM_MODEL,
+                    "ready": False,
+                    "error": f"API key check returned status {resp.status_code}",
+                    "available_models": []
+                }
+        except Exception as e:
+            return {"reachable": False, "model": LLM_MODEL, "url": MODEL_ENDPOINT, "error": str(e)}
+
     print(f"Checking AI health at {LLM_ENDPOINT} for model {LLM_MODEL}...")
     MODEL_ENDPOINT = f"{LLM_ENDPOINT}/v1/models" if LLM_ENDPOINT.endswith("run.app") else f"{LLM_ENDPOINT}/models"
     print(f"Model endpoint: {MODEL_ENDPOINT}")
