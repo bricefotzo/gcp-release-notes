@@ -10,6 +10,17 @@ services:
     depends_on:
       back:
         condition: service_healthy
+  # ── Next.js frontend (port 3000) ────────────────────────────────
+  front-next:
+    build:
+      context: ./frontend-next
+    ports:
+      - "8095:3000"
+    environment:
+      - BACKEND_URL=http://back:8000
+    depends_on:
+      back:
+        condition: service_healthy
   # ── FastAPI backend (port 8000) ─────────────────────────────────
   back:
     build:
@@ -24,6 +35,9 @@ services:
       - DATA_PROJECT_ID=bigquery-public-data
       - DATASET_ID=google_cloud_release_notes
       - TABLE_ID=release_notes
+      - LLM_PROVIDER=${LLM_PROVIDER:-local}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-1.5-flash}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 10s

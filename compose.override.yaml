@@ -21,9 +21,27 @@ services:
         - path: ./frontend/nginx.conf
           action: rebuild
 
+  front-next:
+    command: npm run dev
+    develop:
+      watch:
+        - path: ./frontend-next/src
+          target: /app/src
+          action: sync
+        - path: ./frontend-next/public
+          target: /app/public
+          action: sync
+        - path: ./frontend-next/next.config.ts
+          target: /app/next.config.ts
+          action: sync+restart
+        - path: ./frontend-next/package.json
+          action: rebuild
+        - path: ./frontend-next/Dockerfile
+          action: rebuild
+
   back:
     volumes:
-      - ${ADC_PATH:-./adc.json}:/tmp/adc.json:ro
+      - ${ADC_PATH:-/mnt/c/Users/brice/AppData/Roaming/gcloud/application_default_credentials.json}:/tmp/adc.json:ro
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS=/tmp/adc.json
     develop:
