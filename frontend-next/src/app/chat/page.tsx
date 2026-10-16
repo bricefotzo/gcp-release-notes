@@ -6,7 +6,7 @@ import styles from "./page.module.css";
 
 type Mode = "chat" | "sql";
 
-const ALL_TYPES = ["FEATURE", "FIX", "BREAKING_CHANGE", "DEPRECATION", "ISSUE", "ANNOUNCEMENT"];
+const ALL_TYPES = ["FEATURE", "FIX", "BREAKING_CHANGE", "DEPRECATION", "ISSUE", "SERVICE_ANNOUNCEMENT"];
 
 const ExplainIcon = () => (
   <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "text-bottom", marginRight: "6px" }}>

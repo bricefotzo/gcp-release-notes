@@ -48,53 +48,6 @@
   max-width: 520px;
 }
 
-/* ── Stats row ────────────────────────────────────────────────── */
-.stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  margin-bottom: 2.5rem;
-}
-
-.stat {
-  flex: 1;
-  min-width: 140px;
-  padding: 1.25rem 1.5rem;
-  border-right: 1px solid var(--border);
-}
-
-.stat:last-child { border-right: none; }
-
-.statLabel {
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-3);
-  margin-bottom: 0.3rem;
-}
-
-.statValue {
-  font-size: 1.55rem;
-  font-weight: 800;
-  letter-spacing: -0.025em;
-  color: var(--text);
-}
-
-.statValue.ok     { color: var(--green); }
-.statValue.error  { color: var(--red); }
-
-@keyframes blink {
-  0%, 100% { opacity: 1 } 50% { opacity: 0.35 }
-}
-.statValue.loading {
-  color: var(--text-3);
-  animation: blink 1.4s ease-in-out infinite;
-}
-
 /* ── Feature cards ────────────────────────────────────────────── */
 .cards {
   display: grid;

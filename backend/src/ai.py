@@ -1,12 +1,21 @@
 """AI module — SQL generation + natural-language summarisation via Docker Model Runner."""
 
+import html
+import json
 import os
 import re
+import threading
+from urllib.parse import urlparse
 
 import requests
 from openai import OpenAI
 
 _TAG_RE = re.compile(r"<[^>]+>")
+
+# Prompt budget for /api/ai/chat: keeps the prompt well inside the model's
+# context window so a small local GPU answers in seconds, not minutes.
+AI_MAX_NOTES = int(os.environ.get("AI_MAX_NOTES", "25"))
+AI_MAX_NOTE_CHARS = int(os.environ.get("AI_MAX_NOTE_CHARS", "600"))
 
 # LLM Provider switch: "local" (default) or "gemini"
 LLM_PROVIDER = os.environ.get("LLM_PROVIDER", "local")
@@ -26,7 +35,7 @@ else:
     LLM_URL = os.environ.get("LLM_URL")
     LLM_MODEL_ENV = os.environ.get("LLM_MODEL")
     LLM_ENDPOINT = f"{LLM_URL}/v1" if LLM_URL and LLM_URL.endswith("run.app") else f"{LLM_URL}"
-    LLM_MODEL = "ai/gemma4:E4B" if LLM_URL and LLM_URL.endswith("run.app") else (LLM_MODEL_ENV or "ai/llama3.2")
+    LLM_MODEL = "ai/gemma4:e4b" if LLM_URL and LLM_URL.endswith("run.app") else (LLM_MODEL_ENV or "ai/llama3.2")
     client = OpenAI(
         base_url=LLM_ENDPOINT,
         api_key="not-needed",  # DMR doesn't require an API key
@@ -34,6 +43,68 @@ else:
     )
 
 print(f"Using LLM Provider: {LLM_PROVIDER}, Endpoint: {LLM_ENDPOINT}, Model: {LLM_MODEL}")
+
+
+# --------------- Model pre-hook (Docker Model Runner) ---------------
+# On Cloud Run the model store lives in the instance's in-memory filesystem:
+# every new instance (scale from zero, scale out, new revision) starts empty.
+# Before each LLM call we make sure the model exists, and pull it if not.
+
+MODEL_PULL_TIMEOUT = int(os.environ.get("MODEL_PULL_TIMEOUT", "900"))
+_model_lock = threading.Lock()
+
+
+def _normalize_ref(ref: str) -> str:
+    """'docker.io/ai/llama3.2' and 'ai/llama3.2:latest' → 'ai/llama3.2:latest'."""
+    for prefix in ("docker.io/", "index.docker.io/"):
+        if ref.startswith(prefix):
+            ref = ref[len(prefix):]
+    if ":" not in ref.rsplit("/", 1)[-1]:
+        ref += ":latest"
+    return ref
+
+
+def _runner_base_url() -> str:
+    """Native DMR API root (/models, /models/create) — the host of LLM_URL, without /v1."""
+    parsed = urlparse(LLM_URL)
+    return f"{parsed.scheme}://{parsed.netloc}"
+
+
+def _model_present(base: str) -> bool:
+    resp = requests.get(f"{base}/models", timeout=10)
+    resp.raise_for_status()
+    wanted = _normalize_ref(LLM_MODEL)
+    return any(
+        _normalize_ref(tag) == wanted
+        for model in resp.json()
+        for tag in model.get("tags") or []
+    )
+
+
+def ensure_model_available() -> None:
+    """Pull LLM_MODEL into the model runner if it is missing. No-op for Gemini."""
+    if LLM_PROVIDER != "local" or not LLM_URL:
+        return
+    base = _runner_base_url()
+    if _model_present(base):
+        return
+    # One pull at a time: concurrent requests wait for the first pull instead of starting their own
+    with _model_lock:
+        if _model_present(base):
+            return
+        print(f"Model {LLM_MODEL} missing on {base}, pulling…")
+        resp = requests.post(
+            f"{base}/models/create",
+            json={"from": LLM_MODEL},
+            timeout=(10, MODEL_PULL_TIMEOUT),
+        )
+        resp.raise_for_status()
+        # The runner streams JSON progress lines; the last one reports success or error
+        lines = [l for l in html.unescape(resp.text).splitlines() if l.strip()]
+        last = json.loads(lines[-1]) if lines else {}
+        if last.get("type") == "error":
+            raise RuntimeError(f"Model pull failed: {last.get('message')}")
+        print(f"Model {LLM_MODEL} pulled: {last.get('message', 'ok')}")
 
 
 
@@ -64,6 +135,8 @@ def summarize_release_notes(
     for _, row in notes_df.iterrows():
         pub = str(row["published_at"])[:10]
         desc = _TAG_RE.sub("", str(row.get("description", "") or "")).strip()
+        if len(desc) > AI_MAX_NOTE_CHARS:
+            desc = desc[:AI_MAX_NOTE_CHARS].rstrip() + "…"
         lines.append(
             f"[{row['release_note_type']}] {row['product_name']} ({pub})\n{desc}"
         )

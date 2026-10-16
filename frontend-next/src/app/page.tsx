@@ -1,11 +1,5 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getHealth, getFilterOptions, type FilterOptions } from "@/lib/api";
 import styles from "./page.module.css";
-
-type Status = "loading" | "ok" | "error";
 
 const ExploreIcon = () => (
   <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "block" }}>
@@ -37,45 +31,6 @@ const FEATURES = [
 ];
 
 export default function Home() {
-  const [healthStatus, setHealthStatus] = useState<Status>("loading");
-  const [filters, setFilters] = useState<FilterOptions | null>(null);
-  const [filtersStatus, setFiltersStatus] = useState<Status>("loading");
-
-  useEffect(() => {
-    getHealth()
-      .then(() => setHealthStatus("ok"))
-      .catch(() => setHealthStatus("error"));
-
-    getFilterOptions()
-      .then((d) => { setFilters(d); setFiltersStatus("ok"); })
-      .catch(() => setFiltersStatus("error"));
-  }, []);
-
-  const stats = [
-    {
-      label: "API",
-      value: healthStatus === "loading" ? "—" : healthStatus === "ok" ? "Online" : "Offline",
-      status: healthStatus,
-    },
-    {
-      label: "Products",
-      value: filtersStatus === "loading" ? "—" : filtersStatus === "ok" ? (filters?.products.length ?? 0).toLocaleString() : "—",
-      status: filtersStatus,
-    },
-    {
-      label: "Note types",
-      value: filtersStatus === "loading" ? "—" : filtersStatus === "ok" ? (filters?.types.length ?? 0) : "—",
-      status: filtersStatus,
-    },
-    {
-      label: "Dataset",
-      value: filtersStatus === "loading" ? "—" : filtersStatus === "ok" && filters
-        ? `${filters.min_date.slice(0,4)}–${filters.max_date.slice(0,4)}`
-        : "—",
-      status: filtersStatus,
-    },
-  ];
-
   return (
     <div className={styles.page}>
       {/* Hero */}
@@ -89,16 +44,6 @@ export default function Home() {
           Explore official logs, listen to automated daily summaries, and chat with release history using AI. Built to support multiple platforms.
         </p>
       </section>
-
-      {/* Live stats */}
-      <div className={styles.stats}>
-        {stats.map(({ label, value, status }) => (
-          <div key={label} className={styles.stat}>
-            <div className={styles.statLabel}>{label}</div>
-            <div className={`${styles.statValue} ${styles[status]}`}>{value}</div>
-          </div>
-        ))}
-      </div>
 
       {/* Feature grid */}
       <div className={styles.cards}>

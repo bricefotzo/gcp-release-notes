@@ -6,6 +6,7 @@ export const NOTE_TYPE_VARIANTS: Record<string, string> = {
   DEPRECATION: "deprecation",
   ISSUE: "issue",
   ANNOUNCEMENT: "announcement",
+  SERVICE_ANNOUNCEMENT: "announcement",
 };
 
 export function badgeVariant(type: string): string {

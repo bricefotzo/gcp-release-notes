@@ -8,7 +8,7 @@ import { stripHtml, formatDate } from "@/lib/utils";
 import styles from "./ExploreClient.module.css";
 
 const PAGE_SIZE = 20;
-const ALL_TYPES = ["FEATURE", "FIX", "BREAKING_CHANGE", "DEPRECATION", "ISSUE", "ANNOUNCEMENT"];
+const ALL_TYPES = ["FEATURE", "FIX", "BREAKING_CHANGE", "DEPRECATION", "ISSUE", "SERVICE_ANNOUNCEMENT"];
 
 // ── SVG Icons ──────────────────────────────────────────────────
 const BookmarkIcon = ({ active }: { active?: boolean }) => (
@@ -49,6 +49,13 @@ function loadStack(): string[] {
 }
 function persistStack(s: string[]) {
   localStorage.setItem("stack", JSON.stringify(s));
+}
+function loadStackOnly(): boolean {
+  try { return localStorage.getItem("stackOnly") === "1"; }
+  catch { return false; }
+}
+function persistStackOnly(on: boolean) {
+  try { localStorage.setItem("stackOnly", on ? "1" : "0"); } catch {}
 }
 
 // ── Bookmarks helpers (persisted to localStorage) ──────────────
@@ -103,9 +110,17 @@ export default function ExploreClient() {
   const [shareSelection, setShareSelection] = useState<ReleaseNote[]>([]);
 
   useEffect(() => {
-    setStack(loadStack());
+    const savedStack = loadStack();
+    setStack(savedStack);
+    setStackOnly(savedStack.length > 0 && loadStackOnly());
     setBookmarks(loadBookmarks());
   }, []);
+
+  // Keep the "Filter to stack" toggle across reloads, like the stack itself
+  function updateStackOnly(on: boolean) {
+    setStackOnly(on);
+    persistStackOnly(on);
+  }
 
   function addToStack(product: string) {
     if (!product || stack.includes(product)) return;
@@ -113,13 +128,15 @@ export default function ExploreClient() {
     setStack(next);
     persistStack(next);
     setPickerVal("");
+    // Adding a product signals intent to narrow the feed — apply the filter right away
+    updateStackOnly(true);
   }
 
   function removeFromStack(product: string) {
     const next = stack.filter(p => p !== product);
     setStack(next);
     persistStack(next);
-    if (next.length === 0) setStackOnly(false);
+    if (next.length === 0) updateStackOnly(false);
   }
 
   function toggleBookmark(note: ReleaseNote) {
@@ -234,7 +251,7 @@ export default function ExploreClient() {
     setTypes(next); pushUrl({ type: next });
   }
   function clearAll() {
-    setSearch(""); setTypes([]); setStartDate(""); setEndDate(""); setStackOnly(false);
+    setSearch(""); setTypes([]); setStartDate(""); setEndDate(""); updateStackOnly(false);
     router.replace("/explore", { scroll: false });
   }
 
@@ -327,7 +344,7 @@ Provide ONLY the final generated social post text. No introductory remarks like 
           {stack.length > 0 && (
             <button
               className={`${styles.stackFilterBtn} ${stackOnly ? styles.stackFilterActive : ""}`}
-              onClick={() => setStackOnly(v => !v)}
+              onClick={() => updateStackOnly(!stackOnly)}
             >
               {stackOnly ? "Showing stack only" : "Filter to stack"}
             </button>

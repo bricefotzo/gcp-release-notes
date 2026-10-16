@@ -4,11 +4,11 @@ from contextlib import asynccontextmanager
 from datetime import date
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from src.ai import generate_sql_query, summarize_release_notes, LLM_MODEL, LLM_ENDPOINT
+from src.ai import AI_MAX_NOTES, ensure_model_available, generate_sql_query, summarize_release_notes, LLM_MODEL, LLM_ENDPOINT
 from src.bq import init_bq_client
 from src.config import get_table_name
 from src.queries import (
@@ -31,6 +31,14 @@ TABLE_SCHEMA = [
     {"name": "product_name", "type": "STRING"},
     {"name": "product_version_name", "type": "STRING"},
 ]
+
+
+def _records(df) -> list[dict]:
+    """DataFrame → JSON-safe records: missing values become None.
+
+    pandas 3 stores nulls in string columns as NaN, which json.dumps rejects.
+    """
+    return df.astype(object).where(df.notna(), None).to_dict(orient="records")
 
 
 @asynccontextmanager
@@ -64,6 +72,7 @@ app.add_middleware(
 
 
 @app.get("/health")
+@app.get("/api/health")  # same probe, reachable through frontend-next's /api/* proxy
 def health():
     return {"status": "ok"}
 
@@ -100,7 +109,7 @@ def get_release_notes(
     if not df.empty and "published_at" in df.columns:
         df["published_at"] = df["published_at"].astype(str)
 
-    return {"data": df.to_dict(orient="records"), "total": int(total)}
+    return {"data": _records(df), "total": int(total)}
 
 
 # --------------- Insights ---------------
@@ -116,7 +125,7 @@ def get_time_series():
     """
     df = bq_client.query(query).to_dataframe()
     df["month"] = df["month"].astype(str)
-    return df.to_dict(orient="records")
+    return _records(df)
 
 
 @app.get("/api/insights/type-distribution")
@@ -128,7 +137,7 @@ def get_type_distribution():
     GROUP BY release_note_type ORDER BY count DESC LIMIT 10
     """
     df = bq_client.query(query).to_dataframe()
-    return df.to_dict(orient="records")
+    return _records(df)
 
 
 @app.get("/api/insights/top-products")
@@ -140,7 +149,7 @@ def get_top_products():
     GROUP BY product_name ORDER BY count DESC LIMIT 10
     """
     df = bq_client.query(query).to_dataframe()
-    return df.to_dict(orient="records")
+    return _records(df)
 
 
 @app.get("/api/insights/heatmap")
@@ -157,10 +166,18 @@ def get_heatmap():
     """
     df = bq_client.query(query).to_dataframe()
     df["week"] = df["week"].astype(str)
-    return df.to_dict(orient="records")
+    return _records(df)
 
 
 # --------------- AI ---------------
+
+
+def require_model():
+    """Pre-hook for every LLM route: pull the model first if the runner lost it."""
+    try:
+        ensure_model_available()
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"LLM model {LLM_MODEL} unavailable: {e}")
 
 
 class AIQueryRequest(BaseModel):
@@ -212,7 +229,7 @@ def ai_health():
         return {"reachable": False, "model": LLM_MODEL, "url": LLM_ENDPOINT,"error": str(e)}
 
 
-@app.post("/api/ai/generate-sql")
+@app.post("/api/ai/generate-sql", dependencies=[Depends(require_model)])
 def generate_sql(request: AIQueryRequest):
     f"""Return the SQL generated for a natural-language question.
     {LLM_MODEL} at {LLM_ENDPOINT}
@@ -224,7 +241,7 @@ def generate_sql(request: AIQueryRequest):
 #        raise HTTPException(status_code=503, detail=f"AI service unavailable for {get_llm_model_name()}: {e}")
 
 
-@app.post("/api/ai/query")
+@app.post("/api/ai/query", dependencies=[Depends(require_model)])
 def ai_query(request: AIQueryRequest):
     """Generate SQL from a question, execute it, and return the results."""
     try:
@@ -236,7 +253,7 @@ def ai_query(request: AIQueryRequest):
         df = bq_client.query(sql).to_dataframe()
         if "published_at" in df.columns:
             df["published_at"] = df["published_at"].astype(str)
-        records = df.head(50).to_dict(orient="records")
+        records = _records(df.head(50))
         return {"sql": sql, "rows": records, "total": len(df)}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Query execution failed: {e}\n\nGenerated SQL:\n{sql}")
@@ -253,32 +270,32 @@ class AIChatRequest(BaseModel):
     end_date: Optional[str] = None
 
 
-@app.post("/api/ai/chat")
+@app.post("/api/ai/chat", dependencies=[Depends(require_model)])
 def ai_chat(request: AIChatRequest):
     """Fetch release notes matching the filters and answer the question in plain language."""
-    # try:
-    start = date.fromisoformat(request.start_date) if request.start_date else None
-    end   = date.fromisoformat(request.end_date)   if request.end_date   else None
+    try:
+        start = date.fromisoformat(request.start_date) if request.start_date else None
+        end   = date.fromisoformat(request.end_date)   if request.end_date   else None
 
-    df, total = query_release_notes(
-        request.types, request.products, start, end, "", 100, 0, bq_client, table_name
-    )
+        df, total = query_release_notes(
+            request.types, request.products, start, end, "", AI_MAX_NOTES, 0, bq_client, table_name
+        )
 
-    if df.empty:
-        return {
-            "answer": (
-                "No release notes found for the given filters. "
-                "Try broadening the date range or removing product filters."
-            ),
-            "count": 0,
-            "total": 0,
-        }
+        if df.empty:
+            return {
+                "answer": (
+                    "No release notes found for the given filters. "
+                    "Try broadening the date range or removing product filters."
+                ),
+                "count": 0,
+                "total": 0,
+            }
 
-    if "published_at" in df.columns:
-        df["published_at"] = df["published_at"].astype(str)
+        if "published_at" in df.columns:
+            df["published_at"] = df["published_at"].astype(str)
 
-    answer = summarize_release_notes(request.question, df, len(df), int(total))
-    return {"answer": answer, "count": len(df), "total": int(total)}
+        answer = summarize_release_notes(request.question, df, len(df), int(total))
+        return {"answer": answer, "count": len(df), "total": int(total)}
 
-    # except Exception as e:
-    #     raise HTTPException(status_code=503, detail=f"AI chat unavailable: {e}, Exception type: {type(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"AI chat unavailable: {e}")

@@ -36,9 +36,13 @@ def query_release_notes(
         placeholders = ", ".join(["?"] * len(product_names))
         where_clauses.append(f"product_name IN ({placeholders})")
         query_params.extend(product_names)
-    if start_date and end_date:
-        where_clauses.append("published_at BETWEEN ? AND ?")
-        query_params.extend([start_date.isoformat(), end_date.isoformat()])
+    # Each bound applies on its own — a "from" date alone must still filter
+    if start_date:
+        where_clauses.append("published_at >= ?")
+        query_params.append(start_date.isoformat())
+    if end_date:
+        where_clauses.append("published_at <= ?")
+        query_params.append(end_date.isoformat())
     if search_text:
         safe = search_text.replace("'", "''")
         where_clauses.append(

@@ -7,6 +7,7 @@ const LABELS: Record<string, string> = {
   DEPRECATION:    "Deprecated",
   ISSUE:          "Issue",
   ANNOUNCEMENT:   "Announcement",
+  SERVICE_ANNOUNCEMENT: "Announcement",
 };
 
 const VARIANTS: Record<string, string> = {
@@ -16,6 +17,7 @@ const VARIANTS: Record<string, string> = {
   DEPRECATION:    "deprecation",
   ISSUE:          "issue",
   ANNOUNCEMENT:   "announcement",
+  SERVICE_ANNOUNCEMENT: "announcement",
 };
 
 export default function Badge({ type }: { type: string }) {
