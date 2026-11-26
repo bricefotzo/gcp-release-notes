@@ -1,29 +1,47 @@
 services:
-  front:
+  # front:
+  #   develop:
+  #     watch:
+  #       # Python sources — Streamlit auto-reloads on file changes
+  #       - path: ./frontend/main.py
+  #         target: /app/main.py
+  #         action: sync
+  #       - path: ./frontend/src
+  #         target: /app/src
+  #         action: sync
+  #       # Static assets — synced immediately, Streamlit picks them up on next rerun
+  #       - path: ./frontend/assets
+  #         target: /app/assets
+  #         action: sync
+  #       # Structural changes require a full rebuild
+  #       - path: ./frontend/requirements.txt
+  #         action: rebuild
+  #       - path: ./frontend/Dockerfile
+  #         action: rebuild
+  #       - path: ./frontend/nginx.conf
+  #         action: rebuild
+
+  front-next:
+    command: npm run dev
     develop:
       watch:
-        # Python sources — Streamlit auto-reloads on file changes
-        - path: ./frontend/main.py
-          target: /app/main.py
-          action: sync
-        - path: ./frontend/src
+        - path: ./frontend-next/src
           target: /app/src
           action: sync
-        # Static assets — synced immediately, Streamlit picks them up on next rerun
-        - path: ./frontend/assets
-          target: /app/assets
+        - path: ./frontend-next/public
+          target: /app/public
           action: sync
-        # Structural changes require a full rebuild
-        - path: ./frontend/requirements.txt
+        - path: ./frontend-next/next.config.ts
+          target: /app/next.config.ts
+          action: sync+restart
+        - path: ./frontend-next/package.json
           action: rebuild
-        - path: ./frontend/Dockerfile
-          action: rebuild
-        - path: ./frontend/nginx.conf
+        - path: ./frontend-next/Dockerfile
           action: rebuild
 
   back:
     volumes:
-      - ${ADC_PATH:-./adc.json}:/tmp/adc.json:ro
+      - ${ADC_PATH:-/mnt/c/Users/brice/AppData/Roaming/gcloud/application_default_credentials.json}:/tmp/adc.json:ro
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS=/tmp/adc.json
     develop:
@@ -44,3 +62,9 @@ services:
           action: rebuild
         - path: ./backend/Dockerfile
           action: rebuild
+
+# Dev-only: a smaller context so llama3.2 + its KV cache fit in a 4 GB GPU.
+# At 32768 the KV cache overflows VRAM, llama.cpp spills to CPU and answers take minutes.
+models:
+  llm:
+    context_size: 8192

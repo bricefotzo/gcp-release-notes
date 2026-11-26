@@ -1,10 +1,10 @@
 services:
-  # ── Streamlit frontend (port 8080) ──────────────────────────────
-  front:
+  # ── Next.js frontend (port 3000) ────────────────────────────────
+  front-next:
     build:
-      context: ./frontend
+      context: ./frontend-next
     ports:
-      - "8090:8080"
+      - "8095:3000"
     environment:
       - BACKEND_URL=http://back:8000
     depends_on:
@@ -24,6 +24,9 @@ services:
       - DATA_PROJECT_ID=bigquery-public-data
       - DATASET_ID=google_cloud_release_notes
       - TABLE_ID=release_notes
+      - LLM_PROVIDER=${LLM_PROVIDER:-local}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-1.5-flash}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 10s
@@ -33,12 +36,14 @@ services:
 # ── Docker Model Runner ─────────────────────────────────────────
 models:
   llm:
-    model: ai/llama3.2
+    model: ai/gemma4:e4b
     context_size: 32768
     x-google-cloudrun:
       environment:
         PORT: 12434
         MODEL_RUNNER_PORT: 12434
       run-model:
-        inference-container: docker/model-runner
-
+        # :latest is the CPU-only build — on a GPU instance llama.cpp logs
+        # "no usable GPU found" and runs on CPU. Use the CUDA build, pinned.
+        # inference-container: docker/model-runner:v1.2.8-cuda
+        inference-container: docker/model-runner:latest

@@ -1,0 +1,17 @@
+.badge {
+  display: inline-block;
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.feature     { background: var(--green-dim);  color: var(--green);  }
+.fix         { background: var(--blue-dim);   color: var(--blue);   }
+.breaking    { background: var(--red-dim);    color: var(--red);    }
+.deprecation { background: var(--orange-dim); color: var(--orange); }
+.issue       { background: var(--purple-dim); color: var(--purple); }
+.announcement{ background: var(--amber-dim);  color: var(--amber);  }
+.default     { background: rgba(255,255,255,0.06); color: var(--text-2); }

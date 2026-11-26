@@ -1,9 +1,11 @@
-fastapi>=0.115.0
-uvicorn[standard]>=0.32.0
-google-cloud-bigquery>=3.31.0
-db-dtypes>=1.5.0
-pandas>=2.2.3
-pyarrow>=18.0.0
-python-dotenv>=1.1.0
-requests>=2.32.0
-openai
+# Pinned: unpinned ranges let Cloud Run builds pick up pandas 3 while local
+# Docker cache stayed on pandas 2 — same code, different behaviour.
+fastapi==0.143.0
+uvicorn[standard]==0.54.0
+google-cloud-bigquery==3.46.1
+db-dtypes==1.7.2
+pandas==3.0.6
+pyarrow==26.0.0
+python-dotenv==1.2.4
+requests==2.34.2
+openai==3.29.0

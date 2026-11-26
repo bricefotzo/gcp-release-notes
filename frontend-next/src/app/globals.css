@@ -1,0 +1,74 @@
+/* ── Reset ────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Surfaces — warm off-white, like quality paper */
+  --bg:            #f7f6f3;
+  --surface:       #ffffff;
+  --surface-2:     #f0efe9;
+  --border:        rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.14);
+
+  /* Text */
+  --text:   #131211;
+  --text-2: #6b6a67;
+  --text-3: #b0aea9;
+
+  /* Primary accent — clear blue, trustworthy */
+  --blue:        #2563eb;
+  --blue-dim:    rgba(37, 99, 235, 0.07);
+  --blue-border: rgba(37, 99, 235, 0.18);
+
+  /* Semantic status colors */
+  --green:        #16a34a;
+  --green-dim:    rgba(22, 163, 74, 0.08);
+  --red:          #dc2626;
+  --red-dim:      rgba(220, 38, 38, 0.08);
+  --amber:        #d97706;
+  --amber-dim:    rgba(217, 119, 6, 0.08);
+  --amber-border: rgba(217, 119, 6, 0.2);
+  --purple:       #7c3aed;
+  --purple-dim:   rgba(124, 58, 237, 0.08);
+  --orange:       #ea580c;
+  --orange-dim:   rgba(234, 88, 12, 0.08);
+
+  /* Platform colors */
+  --gcp:  #4285f4;
+  --aws:  #ff9900;
+  --azure:#0078d4;
+
+  /* Typography */
+  --font: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* Shape */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+/* ── Subtle scrollbar ─────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 99px; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}

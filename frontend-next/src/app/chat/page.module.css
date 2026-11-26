@@ -1,0 +1,514 @@
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  margin-bottom: 0.2rem;
+}
+
+.subtitle {
+  font-size: 0.82rem;
+  color: var(--text-2);
+}
+
+.clearBtn {
+  font-size: 0.78rem;
+  color: var(--text-3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  transition: all 120ms;
+}
+
+.clearBtn:hover {
+  color: var(--text-2);
+  border-color: var(--border-strong);
+}
+
+/* ── Mode Switcher ────────────────────────────────────────────── */
+.modeTabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.tab {
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.45rem 1rem;
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+  color: var(--text-2);
+  background: transparent;
+  cursor: pointer;
+  transition: all 120ms;
+}
+
+.tab:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.activeTab {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+/* ── Layout grid ──────────────────────────────────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 850px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Chat Section ─────────────────────────────────────────────── */
+.chatSection {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 480px;
+}
+
+.welcome {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 1.5rem;
+}
+
+.welcomeIcon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.welcome h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.welcome p {
+  font-size: 0.86rem;
+  color: var(--text-2);
+  max-width: 420px;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+/* Suggestions */
+.suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 500px;
+}
+
+.sugLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sugGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sugButton {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-2);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  text-align: left;
+  transition: all 120ms;
+  line-height: 1.4;
+}
+
+.sugButton:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+  background: var(--surface);
+}
+
+/* Message Feed */
+.messageList {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  max-height: 540px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.messageRow {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+
+.userRow .avatar {
+  background: var(--blue-dim);
+  border-color: var(--blue-border);
+  color: var(--blue);
+}
+
+.aiRow .avatar {
+  background: var(--amber-dim);
+  border-color: var(--amber-border);
+  color: var(--amber);
+}
+
+.messageContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.messageText {
+  font-size: 0.88rem;
+  color: var(--text);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* SQL Details */
+.sqlWrapper {
+  margin-top: 0.5rem;
+}
+
+.sqlDetails {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.sqlSummary {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-2);
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  background: var(--surface-2);
+}
+
+.sqlCode {
+  padding: 0.75rem;
+  font-family: monospace;
+  font-size: 0.78rem;
+  color: var(--text);
+  overflow-x: auto;
+  line-height: 1.4;
+  white-space: pre;
+}
+
+/* SQL Table View */
+.tableWrapper {
+  margin-top: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.resultsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  text-align: left;
+}
+
+.resultsTable th {
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.resultsTable td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resultsTable tr:last-child td {
+  border-bottom: none;
+}
+
+.tableCount {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-3);
+  padding: 0.4rem 0.75rem;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+}
+
+.emptyTable {
+  font-size: 0.8rem;
+  color: var(--text-3);
+  font-style: italic;
+  padding: 0.5rem 0;
+}
+
+.contextInfo {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  font-style: italic;
+}
+
+/* Shimmer Loading */
+@keyframes shimmerPulse {
+  0% { opacity: 0.5 }
+  50% { opacity: 1 }
+  100% { opacity: 0.5 }
+}
+
+.shimmer {
+  animation: shimmerPulse 1.5s infinite ease-in-out;
+}
+
+.skeletonLine {
+  height: 12px;
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+  margin-bottom: 0.4rem;
+}
+
+/* Chat Input bar */
+.inputForm {
+  display: flex;
+  gap: 0.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+.chatInput {
+  flex: 1;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.86rem;
+  outline: none;
+  font-family: inherit;
+  transition: all 120ms;
+}
+
+.chatInput:focus {
+  border-color: var(--border-strong);
+  background: var(--surface);
+}
+
+.sendBtn {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--surface);
+  background: var(--text);
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: opacity 120ms;
+}
+
+.sendBtn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.error {
+  padding: 0.6rem 0.85rem;
+  background: var(--red-dim);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: var(--r-sm);
+  color: var(--red);
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+/* ── Context Sidebar ──────────────────────────────────────────── */
+.sidebar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 1.25rem;
+}
+
+.sidebarTitle {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.sidebarDesc {
+  font-size: 0.75rem;
+  color: var(--text-3);
+  line-height: 1.4;
+  margin-bottom: 1.25rem;
+}
+
+.formGroup {
+  margin-bottom: 1.25rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+.formGroup:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+  margin-bottom: 0.5rem;
+}
+
+.checkboxGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.filterChip {
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 0.2rem 0.45rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  background: transparent;
+  cursor: pointer;
+  transition: all 120ms;
+}
+
+.filterChip:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.filterChipActive {
+  background: var(--amber-dim);
+  border-color: var(--amber-border);
+  color: var(--amber);
+}
+
+.moreLabel {
+  font-size: 0.68rem;
+  color: var(--text-3);
+  margin-top: 0.25rem;
+  display: block;
+  width: 100%;
+}
+
+.dateInputs {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.dateInput {
+  flex: 1;
+  padding: 0.35rem 0.5rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-size: 0.75rem;
+  outline: none;
+  font-family: inherit;
+  color-scheme: light;
+}
+
+.dateInput:focus {
+  border-color: var(--border-strong);
+}
+
+.dateSep {
+  color: var(--text-3);
+  font-size: 0.75rem;
+}
