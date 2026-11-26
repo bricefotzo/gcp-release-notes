@@ -1,15 +1,4 @@
 services:
-  # ── Streamlit frontend (port 8080) ──────────────────────────────
-  front:
-    build:
-      context: ./frontend
-    ports:
-      - "8090:8080"
-    environment:
-      - BACKEND_URL=http://back:8000
-    depends_on:
-      back:
-        condition: service_healthy
   # ── Next.js frontend (port 3000) ────────────────────────────────
   front-next:
     build:
@@ -47,12 +36,14 @@ services:
 # ── Docker Model Runner ─────────────────────────────────────────
 models:
   llm:
-    model: ai/llama3.2
+    model: ai/gemma4:e4b
     context_size: 32768
     x-google-cloudrun:
       environment:
         PORT: 12434
         MODEL_RUNNER_PORT: 12434
       run-model:
-        inference-container: docker/model-runner
-
+        # :latest is the CPU-only build — on a GPU instance llama.cpp logs
+        # "no usable GPU found" and runs on CPU. Use the CUDA build, pinned.
+        # inference-container: docker/model-runner:v1.2.8-cuda
+        inference-container: docker/model-runner:latest

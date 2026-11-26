@@ -1,25 +1,25 @@
 services:
-  front:
-    develop:
-      watch:
-        # Python sources — Streamlit auto-reloads on file changes
-        - path: ./frontend/main.py
-          target: /app/main.py
-          action: sync
-        - path: ./frontend/src
-          target: /app/src
-          action: sync
-        # Static assets — synced immediately, Streamlit picks them up on next rerun
-        - path: ./frontend/assets
-          target: /app/assets
-          action: sync
-        # Structural changes require a full rebuild
-        - path: ./frontend/requirements.txt
-          action: rebuild
-        - path: ./frontend/Dockerfile
-          action: rebuild
-        - path: ./frontend/nginx.conf
-          action: rebuild
+  # front:
+  #   develop:
+  #     watch:
+  #       # Python sources — Streamlit auto-reloads on file changes
+  #       - path: ./frontend/main.py
+  #         target: /app/main.py
+  #         action: sync
+  #       - path: ./frontend/src
+  #         target: /app/src
+  #         action: sync
+  #       # Static assets — synced immediately, Streamlit picks them up on next rerun
+  #       - path: ./frontend/assets
+  #         target: /app/assets
+  #         action: sync
+  #       # Structural changes require a full rebuild
+  #       - path: ./frontend/requirements.txt
+  #         action: rebuild
+  #       - path: ./frontend/Dockerfile
+  #         action: rebuild
+  #       - path: ./frontend/nginx.conf
+  #         action: rebuild
 
   front-next:
     command: npm run dev
@@ -62,3 +62,9 @@ services:
           action: rebuild
         - path: ./backend/Dockerfile
           action: rebuild
+
+# Dev-only: a smaller context so llama3.2 + its KV cache fit in a 4 GB GPU.
+# At 32768 the KV cache overflows VRAM, llama.cpp spills to CPU and answers take minutes.
+models:
+  llm:
+    context_size: 8192
